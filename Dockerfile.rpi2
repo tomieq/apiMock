@@ -15,5 +15,5 @@ FROM wlisac/raspberry-pi2-swift:5.1-run
 WORKDIR /app
 
 COPY --from=build /app/.build/debug/Planner .
-
+ADD Resources .
 CMD ["./Planner"]
