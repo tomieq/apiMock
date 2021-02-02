@@ -80,7 +80,7 @@ class DataStorage {
     
     private func initSystemParameters() {
         let syncTime = SystemParameterDto()
-        syncTime.id = 1
+        syncTime.id = WebApplication.getUniqueID()
         syncTime.name = UUID().uuidString
         syncTime.code = "MOBILE_SYNCHRONIZATION_INTERVAL"
         syncTime.type = "NUMBER_VALUE"
@@ -88,21 +88,21 @@ class DataStorage {
         
         let sessionTime = SystemParameterDto()
         sessionTime.name = UUID().uuidString
-        sessionTime.id = 2
+        sessionTime.id = WebApplication.getUniqueID()
         sessionTime.code = "MOBILE_SESSION_TIME_IN_MINUTES"
         sessionTime.type = "NUMBER_VALUE"
         sessionTime.intValue = 60
         
         let calendarBack = SystemParameterDto()
         calendarBack.name = UUID().uuidString
-        calendarBack.id = 3
+        calendarBack.id = WebApplication.getUniqueID()
         calendarBack.code = "NUMBER_OF_DAYS_IN_PAST_FOR_MOBILE_CALENDAR"
         calendarBack.type = "NUMBER_VALUE"
         calendarBack.intValue = 2
         
         let calendarForward = SystemParameterDto()
         calendarForward.name = UUID().uuidString
-        calendarForward.id = 4
+        calendarForward.id = WebApplication.getUniqueID()
         calendarForward.code = "NUMBER_OF_DAYS_IN_FUTURE_FOR_MOBILE_CALENDAR"
         calendarForward.type = "NUMBER_VALUE"
         calendarForward.intValue = 7
@@ -148,39 +148,39 @@ class DataStorage {
         let red = DictionaryDto()
         red.code = "RED"
         red.dictionaryName = "COLORS"
-        red.entryId = 1
-        red.id = 1
+        red.id = WebApplication.getUniqueID()
+        red.entryId = red.id
         red.value = "red"
         
         let blue = DictionaryDto()
         blue.code = "BLUE"
         blue.dictionaryName = "COLORS"
-        blue.entryId = 2
-        blue.id = 2
+        blue.id = WebApplication.getUniqueID()
+        blue.entryId = blue.id
         blue.value = "blue"
         
         let green = DictionaryDto()
         green.code = "GREEN"
         green.dictionaryName = "COLORS"
-        green.entryId = 3
-        green.id = 3
+        green.id = WebApplication.getUniqueID()
+        green.entryId = green.id
         green.value = "green"
         
         let lightBlue = DictionaryDto()
         lightBlue.code = "LIGHT_BLUE"
         lightBlue.dictionaryName = "BLUE_COLORS"
-        lightBlue.entryId = 4
-        lightBlue.id = 4
+        lightBlue.id = WebApplication.getUniqueID()
+        lightBlue.entryId = lightBlue.id
         lightBlue.value = "light blue"
-        lightBlue.parentIds = [2]
+        lightBlue.parentIds = [blue.entryId!]
         
         let darkBlue = DictionaryDto()
         darkBlue.code = "DARK_BLUE"
         darkBlue.dictionaryName = "BLUE_COLORS"
-        darkBlue.entryId = 5
-        darkBlue.id = 5
+        darkBlue.id = WebApplication.getUniqueID()
+        darkBlue.entryId = darkBlue.id
         darkBlue.value = "dark blue"
-        darkBlue.parentIds = [2]
+        darkBlue.parentIds = [blue.entryId!]
         
         self.dictionaries = [red, blue, green, lightBlue, darkBlue]
     }
@@ -337,25 +337,25 @@ class DataStorage {
         let closedInstallation = StatusHandlerDto()
         closedInstallation.code = "CLOSE"
         closedInstallation.flowId = 1
-        closedInstallation.id = 1
+        closedInstallation.id = WebApplication.getUniqueID()
         closedInstallation.statusId = 4
         
         let onSiteInstallation = StatusHandlerDto()
         onSiteInstallation.code = "ON_SITE"
         onSiteInstallation.flowId = 1
-        onSiteInstallation.id = 2
+        onSiteInstallation.id = WebApplication.getUniqueID()
         onSiteInstallation.statusId = 3
         
         let closedMaintenance = StatusHandlerDto()
         closedMaintenance.code = "CLOSE"
         closedMaintenance.flowId = 1
-        closedMaintenance.id = 3
+        closedMaintenance.id = WebApplication.getUniqueID()
         closedMaintenance.statusId = 4
         
         let onSiteMaintenance = StatusHandlerDto()
         onSiteMaintenance.code = "ON_SITE"
         onSiteMaintenance.flowId = 2
-        onSiteMaintenance.id = 2
+        onSiteMaintenance.id = WebApplication.getUniqueID()
         onSiteMaintenance.statusId = 3
         
         self.statuShandlers = [closedInstallation, onSiteInstallation, closedMaintenance, onSiteMaintenance]
@@ -413,6 +413,13 @@ class DataStorage {
                 let taskDto = TaskBuilder.makeTaskDto(id: taskID)
                 taskDto.schedule(from: date?.dateAdding(minuteCount: index * 15), to: date?.dateAdding(minuteCount: 15 + index * 15))
                 self.tasks.append(taskDto)
+                
+                let dataChange = DataChangeDto()
+                dataChange.changeType = .insert
+                dataChange.objectType = .task
+                dataChange.objectId = taskID
+                dataChange.id = WebApplication.getUniqueID()
+                self.dataChanges.append(dataChange)
             }
         default:
             break

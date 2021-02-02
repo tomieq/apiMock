@@ -305,6 +305,8 @@ class WebApplication {
 
             let dto = TasksIdListDto()
             dto.ids = self.storage.tasks.compactMap { $0.id }
+            
+            self.storage.dataChanges = self.storage.dataChanges.filter { $0.objectType != .task }
             return dto.asValidRsponse(contentType: contentType)
         }
 
@@ -457,8 +459,10 @@ class WebApplication {
                 changeDto.objectId = taskDto.id
                 changeDto.changeType = .update
                 changeDto.objectType = .task
-                changeDto.id = 1
+                changeDto.id = WebApplication.getUniqueID()
                 self.storage.dataChanges.append(changeDto)
+
+                self.storage.addBusinessDataForToday()
                 return .noContent
             }
         
