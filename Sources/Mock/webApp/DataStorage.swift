@@ -13,6 +13,7 @@ class DataStorage {
     var systemParameters: [SystemParameterDto] = []
     var tasks: [TaskDto] = []
     var calendarEvents: [CalendarEventDto] = []
+    var messages: [MessageDto] = []
     var taskItems: [TaskItemDto] = []
     var dataChanges: [DataChangeDto] = []
     var orderTypes: [WorkOrderTypeDto] = []
@@ -26,6 +27,7 @@ class DataStorage {
     var statuShandlers: [StatusHandlerDto] = []
     var calendarEventTypes: [CalendarEventTypeDto] = []
     var taskFlags: [TaskFlagDto] = []
+    var users: [UserDto] = []
     
     init() {
         self.initComponents()
@@ -41,6 +43,7 @@ class DataStorage {
         self.initStatusHandlers()
         self.initCalendarEventTypes()
         self.initTaskFlags()
+        self.initUsers()
     }
     
     private func initComponents() {
@@ -54,6 +57,10 @@ class DataStorage {
         calendarModule.type = .module
         calendarModule.sequence = 2
         
+        let messagesModule = ConfigurationComponentDto()
+        messagesModule.code = .messages
+        messagesModule.type = .module
+        messagesModule.sequence = 3
         
         let absenceModule = ConfigurationComponentDto()
         absenceModule.code = .absence
@@ -75,7 +82,7 @@ class DataStorage {
         itemChangeStatusButton.type = .button
         itemChangeStatusButton.sequence = 0
         
-        self.components = [tasksModule, calendarModule, absenceModule, addAnnouncementButton, addItemButton, itemChangeStatusButton]
+        self.components = [tasksModule, calendarModule, messagesModule, absenceModule, addAnnouncementButton, addItemButton, itemChangeStatusButton]
     }
     
     private func initSystemParameters() {
@@ -386,6 +393,83 @@ class DataStorage {
         flagSLAExceeded.name = "SLA Exceeded"
         
         self.taskFlags = [flagInRisk, flagSLAExceeded]
+    }
+    
+    private func initUsers() {
+
+        let user1 = UserDto()
+        user1.id = 1
+        user1.firstName = "Hans"
+        user1.fullName = "Hans Klotz"
+        user1.hasAvatar = true
+        user1.login = "kloc"
+        user1.resourceId = 90
+        user1.roleCode = "TECHNICIAN"
+        user1.roleName = "Tecnician"
+        user1.timeZone = "Europe/Warsaw"
+        user1.otpEnabled = false
+        
+        let user5 = UserDto()
+        user5.id = 5
+        user5.firstName = "Antonne"
+        user5.fullName = "Antonne Killesto"
+        user5.hasAvatar = true
+        user5.login = "antonne"
+        user5.resourceId = 5
+        user5.roleCode = "TECHNICIAN"
+        user5.roleName = "Technician"
+        user5.timeZone = "Europe/Warsaw"
+        user5.otpEnabled = false
+        
+        let user9 = UserDto()
+        user9.id = 9
+        user9.firstName = "Stefano"
+        user9.fullName = "Stefano Barracuda"
+        user9.hasAvatar = true
+        user9.login = "stefano"
+        user9.resourceId = 9
+        user9.roleCode = "TECHNICIAN"
+        user9.roleName = "Technician"
+        user9.timeZone = "Europe/Warsaw"
+        user9.otpEnabled = false
+        
+        let user18 = UserDto()
+        user18.id = 18
+        user18.firstName = "Mirosław"
+        user18.fullName = "Mirosław Cebula"
+        user18.hasAvatar = true
+        user18.login = "miroslaw"
+        user18.resourceId = 18
+        user18.roleCode = "TECHNICIAN"
+        user18.roleName = "Technician"
+        user18.timeZone = "Europe/Warsaw"
+        user18.otpEnabled = false
+        
+        let user19 = UserDto()
+        user19.id = 19
+        user19.firstName = "Stefan"
+        user19.fullName = "Stefan Rotthaus"
+        user19.hasAvatar = true
+        user19.login = "stefan"
+        user19.resourceId = 19
+        user19.roleCode = "TECHNICIAN"
+        user19.roleName = "Technician"
+        user19.timeZone = "Europe/Warsaw"
+        user19.otpEnabled = false
+        
+        let user25 = UserDto()
+        user25.id = 25
+        user25.firstName = "Mike"
+        user25.fullName = "Mike Sweeter"
+        user25.hasAvatar = true
+        user25.login = "mike"
+        user25.resourceId = 25
+        user25.roleCode = "TECHNICIAN"
+        user25.roleName = "Technician"
+        user25.timeZone = "Europe/Warsaw"
+        user25.otpEnabled = false
+        
+        self.users = [user1, user5, user9, user18, user19, user25]
     }
     
     func addBusinessDataForToday() {

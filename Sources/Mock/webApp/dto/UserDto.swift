@@ -7,6 +7,11 @@
 
 import Foundation
 
+class UserListDto: Codable {
+    
+    var users: [UserDto]?
+}
+
 class UserDto: Codable {
     
     var id: Int32?

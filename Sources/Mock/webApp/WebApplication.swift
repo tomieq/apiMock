@@ -48,8 +48,6 @@ class WebApplication {
         
         server.POST["/auth/realms/:tenant/protocol/openid-connect/token"] = { request in
             
-            self.storage.addBusinessDataForToday()
-            
             let contentType = request.headers["accept"] ?? "application/json"
             let dto = OAuthAccessTokenDto()
             dto.accessToken = UUID().uuidString
@@ -62,17 +60,10 @@ class WebApplication {
         server.GET["/fsm-mobile/users/me"] = { request in
             
             let contentType = request.headers["accept"] ?? "application/json"
-            let userDto = UserDto()
-            userDto.id = 1
-            userDto.firstName = "Hans"
-            userDto.fullName = "Hans Klotz"
-            userDto.hasAvatar = true
-            userDto.login = "kloc"
-            userDto.resourceId = 90
-            userDto.roleCode = "TECHNICIAN"
-            userDto.roleName = "Tecnician"
-            userDto.timeZone = "Europe/Warsaw"
-            userDto.otpEnabled = false
+            
+            guard let userDto = (self.storage.users.filter{ $0.id == 1 }.first) else {
+                return .internalServerError
+            }
             return userDto.asValidRsponse(contentType: contentType)
         }
         
@@ -271,8 +262,6 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/components"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            
-            
             let listDto = ConfigurationComponentListDto()
             listDto.list = self.storage.components
             listDto.componentByTypeList = []
@@ -341,6 +330,8 @@ class WebApplication {
         // MARK: Tasks
         server.GET["/fsm-mobile/tasks/*"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
+
+            self.storage.addBusinessDataForToday()
             
             let segments = request.path.split("/")
             let idString = segments[2]
@@ -540,13 +531,107 @@ class WebApplication {
             return .ok(.data(UUID().uuidString.data(using: .utf8)!, contentType: contentType))
         }
         
-        // MARK create new calendar event
+        // MARK: create new calendar event
         server.POST["/fsm-mobile/calendars/create"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             let dto = CalendarUpdateResultDto()
             dto.id = WebApplication.getUniqueID()
             dto.calendarVersion = UUID().uuidString
             return dto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: messages
+        server.GET["/fsm-mobile/messages/*"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            
+            let segments = request.path.split("/")
+            let action = segments[2]
+            switch action {
+            case "my":
+                self.storage.dataChanges = self.storage.dataChanges.filter { $0.objectType != .message }
+                let listDto = MessageListDto()
+                listDto.list = self.storage.messages
+                return listDto.asValidRsponse(contentType: contentType)
+            case "recipients":
+                let listDto = UserListDto()
+                listDto.users = self.storage.users.filter { $0.id != 1 }
+                return listDto.asValidRsponse(contentType: contentType)
+            default:
+                let ids = action.split(",")
+                let listDto = MessageListDto()
+                listDto.list = []
+                
+                ids.compactMap{ Int32($0) }.forEach { id in
+                    if let messageDto = (self.storage.messages.filter{ $0.id == id }.first) {
+                        listDto.list?.append(messageDto)
+                    }
+                }
+                return listDto.asValidRsponse(contentType: contentType)
+            }
+            
+        }
+        
+        // MARK: send message
+        server.POST["/fsm-mobile/messages/send"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+                
+            if let messageDto = try? JSONDecoder().decode(MessageDto.self, from: Data(request.bodyString!.utf8)),
+                let recipientID = Int32(request.queryParams.first?.1 ?? ""), let recipient = (self.storage.users.filter{ $0.id == recipientID }.first) {
+                
+                let sender = self.storage.users.filter{ $0.id == 1 }.first
+                
+                messageDto.id = WebApplication.getUniqueID()
+                messageDto.recipientId = recipient.id
+                messageDto.recipientDisplayName = recipient.fullName
+                messageDto.createDate = Date()
+                messageDto.senderFullName = sender?.fullName
+                messageDto.senderId = sender?.id
+                messageDto.status = "DELIVERED"
+                messageDto.priority = messageDto.priority ?? "LOW"
+                self.storage.messages.append(messageDto)
+                
+                var answers: [String] = []
+                answers.append("What do you mean?")
+                answers.append("Leave me alone")
+                answers.append("No")
+                answers.append("Do not make me angry...")
+                answers.append("Why are you so serious?")
+                answers.append("Please explain me that")
+                answers.shuffle()
+                let responseMessageDto = MessageDto()
+                responseMessageDto.id = WebApplication.getUniqueID()
+                responseMessageDto.recipientId = sender?.id
+                responseMessageDto.recipientDisplayName = sender?.fullName
+                responseMessageDto.createDate = Date()
+                responseMessageDto.senderFullName = recipient.fullName
+                responseMessageDto.senderId = recipient.id
+                responseMessageDto.status = "DELIVERED"
+                responseMessageDto.content = answers.first
+                responseMessageDto.priority = "LOW"
+                self.storage.messages.append(responseMessageDto)
+                
+                let dataChange = DataChangeDto()
+                dataChange.changeType = .insert
+                dataChange.objectType = .message
+                dataChange.objectId = responseMessageDto.id
+                dataChange.id = WebApplication.getUniqueID()
+                self.storage.dataChanges.append(dataChange)
+                return messageDto.asValidRsponse(contentType: contentType)
+            }
+            return .noContent
+        }
+        
+        server.PUT["/fsm-mobile/messages"] = { request in
+            
+            if let messageListDto = try? JSONDecoder().decode(MessageListDto.self, from: Data(request.bodyString!.utf8)) {
+                (messageListDto.list ?? []).forEach { dto in
+                    if let status = dto.status, let message = (self.storage.messages.filter { $0.id == dto.id }.first) {
+                        message.status = status
+                    }
+                }
+            }
+            
+            return .noContent
         }
         
         // MARK: Report GPS position
