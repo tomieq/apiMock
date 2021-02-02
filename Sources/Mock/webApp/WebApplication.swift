@@ -150,7 +150,7 @@ class WebApplication {
             let contentType = request.headers["accept"] ?? "application/json"
             
             let listDto = StatusHandlerListDto()
-            listDto.list = []
+            listDto.list = self.storage.statuShandlers
             return listDto.asValidRsponse(contentType: contentType)
         }
         

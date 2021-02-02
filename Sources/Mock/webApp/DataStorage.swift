@@ -23,6 +23,7 @@ class DataStorage {
     var itemLevels: [ItemTypeLevelDto] = []
     var statuses: [StatusDto] = []
     var statusFlow: [StatusChangeConfigurationDto] = []
+    var statuShandlers: [StatusHandlerDto] = []
     var calendarEventTypes: [CalendarEventTypeDto] = []
     var taskFlags: [TaskFlagDto] = []
     
@@ -37,6 +38,7 @@ class DataStorage {
         self.initItemLevels()
         self.initStatuses()
         self.initStatusFlow()
+        self.initStatusHandlers()
         self.initCalendarEventTypes()
         self.initTaskFlags()
     }
@@ -330,6 +332,35 @@ class DataStorage {
         self.statusFlow = [installationFlow, gponCheckFlow]
     }
     
+    private func initStatusHandlers() {
+        
+        let closedInstallation = StatusHandlerDto()
+        closedInstallation.code = "CLOSE"
+        closedInstallation.flowId = 1
+        closedInstallation.id = 1
+        closedInstallation.statusId = 4
+        
+        let onSiteInstallation = StatusHandlerDto()
+        onSiteInstallation.code = "ON_SITE"
+        onSiteInstallation.flowId = 1
+        onSiteInstallation.id = 2
+        onSiteInstallation.statusId = 3
+        
+        let closedMaintenance = StatusHandlerDto()
+        closedMaintenance.code = "CLOSE"
+        closedMaintenance.flowId = 1
+        closedMaintenance.id = 3
+        closedMaintenance.statusId = 4
+        
+        let onSiteMaintenance = StatusHandlerDto()
+        onSiteMaintenance.code = "ON_SITE"
+        onSiteMaintenance.flowId = 2
+        onSiteMaintenance.id = 2
+        onSiteMaintenance.statusId = 3
+        
+        self.statuShandlers = [closedInstallation, onSiteInstallation, closedMaintenance, onSiteMaintenance]
+    }
+    
     private func initCalendarEventTypes() {
         let workTime = CalendarEventTypeDto()
         workTime.id = 1
@@ -375,7 +406,7 @@ class DataStorage {
         }
         
         switch todayOpenTasks.count {
-        case ...3:
+        case ...2:
             let date = todayOpenTasks.sorted { $0.scheduledRealizationTime?.dateFrom ?? Date() < $1.scheduledRealizationTime?.dateFrom ?? Date() }.last?.scheduledRealizationTime?.dateTo ?? Date().dateWithTime(hour: 8, minute: 00)
             for index in 0...(2 - todayOpenTasks.count) {
                 let taskID = WebApplication.getUniqueID()
