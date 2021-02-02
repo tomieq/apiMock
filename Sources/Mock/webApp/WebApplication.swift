@@ -12,9 +12,7 @@ let resourcesPath = FileManager.default.currentDirectoryPath + String.pathSepara
 class WebApplication {
 
     private static var internalCounter: Int32 = 1000
-    var tasks: [Int32: TaskDto] = [:]
-    var taskItems: [Int32: TaskItemDto] = [:]
-    var dataChanges: [DataChangeDto] = []
+    let storage = DataStorage()
     
     init(_ server: HttpServer) {
 
@@ -22,7 +20,7 @@ class WebApplication {
             let taskID = WebApplication.getUniqueID()
             let taskDto = TaskBuilder.makeTaskDto(id: taskID)
             taskDto.schedule(from: Date().dateAdding(minuteCount: index * 30), to: Date().dateAdding(minuteCount: 30 + index * 30))
-            self.tasks[taskID] = taskDto
+            self.storage.tasks[taskID] = taskDto
         }
         
         server["/"] = { request in
@@ -106,17 +104,8 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/workorder/types"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let installation = WorkOrderTypeDto()
-            installation.id = 1
-            installation.name = "Installation"
-            installation.code = "INSTALATION"
-            let maintenance = WorkOrderTypeDto()
-            maintenance.id = 2
-            maintenance.name = "Maintenance"
-            maintenance.code = "MAINTENANCE"
-            
             let listDto = WorkOrderTypeListDto()
-            listDto.list = [installation, maintenance]
+            listDto.list = self.storage.orderTypes
             
             return listDto.asValidRsponse(contentType: contentType)
         }
@@ -148,45 +137,8 @@ class WebApplication {
         server.GET["/fsm-mobile/dictionaries"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let red = DictionaryDto()
-            red.code = "RED"
-            red.dictionaryName = "COLORS"
-            red.entryId = 1
-            red.id = 1
-            red.value = "red"
-            
-            let blue = DictionaryDto()
-            blue.code = "BLUE"
-            blue.dictionaryName = "COLORS"
-            blue.entryId = 2
-            blue.id = 2
-            blue.value = "blue"
-            
-            let green = DictionaryDto()
-            green.code = "GREEN"
-            green.dictionaryName = "COLORS"
-            green.entryId = 3
-            green.id = 3
-            green.value = "green"
-            
-            let lightBlue = DictionaryDto()
-            lightBlue.code = "LIGHT_BLUE"
-            lightBlue.dictionaryName = "BLUE_COLORS"
-            lightBlue.entryId = 4
-            lightBlue.id = 4
-            lightBlue.value = "light blue"
-            lightBlue.parentIds = [2]
-            
-            let darkBlue = DictionaryDto()
-            darkBlue.code = "DARK_BLUE"
-            darkBlue.dictionaryName = "BLUE_COLORS"
-            darkBlue.entryId = 5
-            darkBlue.id = 5
-            darkBlue.value = "dark blue"
-            darkBlue.parentIds = [2]
-
             let listDto = DictionaryListDto()
-            listDto.list = [red, blue, green, lightBlue, darkBlue]
+            listDto.list = self.storage.dictionaries
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -218,32 +170,8 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/item/types"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let stb = ItemTypeDto()
-            stb.id = 1
-            stb.canBeCreatedAsAnnouncement = true
-            stb.code = "STB"
-            stb.countable = false
-            stb.itemClass = "EQUIPMENT"
-            stb.serializable = true
-            stb.levelId = 1
-            stb.typeName = "STB"
-            stb.itemAttributes = []
-            stb.itemProposalAttributes = []
-            
-            let cable = ItemTypeDto()
-            cable.id = 2
-            cable.canBeCreatedAsAnnouncement = true
-            cable.code = "RJ45"
-            cable.countable = true
-            cable.itemClass = "MATERIALS"
-            cable.serializable = false
-            cable.levelId = 1
-            cable.typeName = "Ethernet cable RJ45"
-            cable.itemAttributes = []
-            cable.itemProposalAttributes = []
-            
             let listDto = ItemTypeListDto()
-            listDto.list = [stb, cable]
+            listDto.list = self.storage.itemTypes
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -251,31 +179,9 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/item/types/class"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let equipment = ItemTypeClassDto()
-            equipment.id = 1
-            equipment.name = "Equipments"
-            equipment.canBeCreatedAsAnnouncement = true
-            equipment.canBeDeleted = true
-            equipment.canBeChanged = true
-            equipment.code = "EQUIPMENT"
             
-            let materials = ItemTypeClassDto()
-            materials.id = 2
-            materials.name = "Materials"
-            materials.canBeCreatedAsAnnouncement = true
-            materials.canBeDeleted = true
-            materials.canBeChanged = true
-            materials.code = "MATERIALS"
-            
-            let installedServices = ItemTypeClassDto()
-            installedServices.id = 3
-            installedServices.name = "Services"
-            installedServices.canBeCreatedAsAnnouncement = false
-            installedServices.canBeDeleted = false
-            installedServices.canBeChanged = false
-            installedServices.code = "INSTALLED_SERVICES"
             let listDto = ItemTypeClassListDto()
-            listDto.itemTypesClasses = [equipment, materials, installedServices]
+            listDto.itemTypesClasses = self.storage.itemClasses
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -283,14 +189,8 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/item/types/level"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let level1 = ItemTypeLevelDto()
-            level1.id = 1
-            level1.code = "LEVEL1"
-            level1.name = "Type"
-            level1.isFinal = true
-            
             let listDto = ItemTypeLevelListDto()
-            listDto.itemTypesLevels = [level1]
+            listDto.itemTypesLevels = self.storage.itemLevels
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -341,52 +241,8 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/statuses"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let assigned = StatusDto()
-            assigned.id = 1
-            assigned.code = "ASSIGNED"
-            assigned.name = "Assigned"
-            assigned.workRelated = false
-            assigned.statusFlowType = [.task]
-            let enRoute = StatusDto()
-            enRoute.id = 2
-            enRoute.code = "EN_ROUTE"
-            enRoute.name = "En route"
-            enRoute.workRelated = false
-            enRoute.statusFlowType = [.task]
-            let inProgress = StatusDto()
-            inProgress.id = 3
-            inProgress.code = "IN_PROGRESS"
-            inProgress.name = "In progress"
-            inProgress.workRelated = false
-            inProgress.statusFlowType = [.task]
-            let done = StatusDto()
-            done.id = 4
-            done.code = "DONE"
-            done.name = "Done"
-            done.workRelated = false
-            done.statusFlowType = [.task]
-            let cancelled = StatusDto()
-            cancelled.id = 5
-            cancelled.code = "CANCELLED"
-            cancelled.name = "Cancelled"
-            cancelled.workRelated = false
-            cancelled.statusFlowType = [.task]
-            
-            let inBox = StatusDto()
-            inBox.id = 6
-            inBox.code = "IN_BOX"
-            inBox.name = "In box"
-            inBox.workRelated = false
-            inBox.statusFlowType = [.equipment]
-            let installed = StatusDto()
-            installed.id = 7
-            installed.code = "INSTALLED"
-            installed.name = "Installed"
-            installed.workRelated = false
-            installed.statusFlowType = [.equipment]
-            
             let listDto = StatusListDto()
-            listDto.list = [assigned, enRoute, inProgress, done, cancelled, inBox, installed]
+            listDto.list = self.storage.statuses
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -419,39 +275,10 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/components"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let tasksModule = ConfigurationComponentDto()
-            tasksModule.code = .tasks
-            tasksModule.type = .module
-            tasksModule.sequence = 1
             
-            let calendarModule = ConfigurationComponentDto()
-            calendarModule.code = .calendar
-            calendarModule.type = .module
-            calendarModule.sequence = 2
-            
-            
-            let absenceModule = ConfigurationComponentDto()
-            absenceModule.code = .absence
-            absenceModule.type = .module
-            absenceModule.sequence = 0
-            
-            let addAnnouncementButton = ConfigurationComponentDto()
-            addAnnouncementButton.code = .addAnnouncementButton
-            addAnnouncementButton.type = .button
-            addAnnouncementButton.sequence = 0
-            
-            let addItemButton = ConfigurationComponentDto()
-            addItemButton.code = .addItemButton
-            addItemButton.type = .button
-            addItemButton.sequence = 0
-            
-            let itemChangeStatusButton = ConfigurationComponentDto()
-            itemChangeStatusButton.code = .changeItemStatusButton
-            itemChangeStatusButton.type = .button
-            itemChangeStatusButton.sequence = 0
             
             let listDto = ConfigurationComponentListDto()
-            listDto.list = [tasksModule, calendarModule, absenceModule, addAnnouncementButton, addItemButton, itemChangeStatusButton]
+            listDto.list = self.storage.components
             listDto.componentByTypeList = []
             return listDto.asValidRsponse(contentType: contentType)
         }
@@ -460,17 +287,8 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/task/flags"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let flagInRisk = TaskFlagDto()
-            flagInRisk.id = 1
-            flagInRisk.code = "IN_RISK"
-            flagInRisk.name = "In risk"
-            let flagSLAExceeded = TaskFlagDto()
-            flagSLAExceeded.id = 2
-            flagSLAExceeded.code = "SLA_EXCEEDED"
-            flagSLAExceeded.name = "SLA Exceeded"
-            
             let listDto = TaskFlagListDto()
-            listDto.list = [flagInRisk, flagSLAExceeded]
+            listDto.list = self.storage.taskFlags
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -478,23 +296,8 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/task/types"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let installation = TaskTypeDto()
-            installation.id = 1
-            installation.classCode = "FIELS_INSTALLATION_CLASS"
-            installation.code = "FIELD_INSTALLATION"
-            installation.flowId = 1
-            installation.maxAttachmentNumber = 100
-            installation.name = "Field Installation"
-            let maintenance = TaskTypeDto()
-            maintenance.id = 2
-            maintenance.classCode = "GPON_CHECK_CLASS"
-            maintenance.code = "GPON_CHECK"
-            maintenance.flowId = 1
-            maintenance.maxAttachmentNumber = 100
-            maintenance.name = "GPON Check"
-            
             let listDto = TaskTypeListDto()
-            listDto.list = [installation, maintenance]
+            listDto.list = self.storage.taskTypes
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -503,7 +306,7 @@ class WebApplication {
             let contentType = request.headers["accept"] ?? "application/json"
             
             let dto = TasksIdListDto()
-            dto.ids = self.tasks.map { $0.key }
+            dto.ids = self.storage.tasks.map { $0.key }
             return dto.asValidRsponse(contentType: contentType)
         }
 
@@ -531,38 +334,8 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/task/status/flows/:ids"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            
-            let assigned2EnRoute = StatusTransitionDto()
-            assigned2EnRoute.firstStatusId = 1
-            assigned2EnRoute.nextStatusId = 2
-            assigned2EnRoute.noteRendered = false
-            assigned2EnRoute.noteRequired = false
-            let enRoute2InProgress = StatusTransitionDto()
-            enRoute2InProgress.firstStatusId = 2
-            enRoute2InProgress.nextStatusId = 3
-            enRoute2InProgress.noteRendered = false
-            enRoute2InProgress.noteRequired = false
-            let inProgress2Done = StatusTransitionDto()
-            inProgress2Done.firstStatusId = 3
-            inProgress2Done.nextStatusId = 4
-            inProgress2Done.noteRendered = false
-            inProgress2Done.noteRequired = false
-            let inProgress2Cancelled = StatusTransitionDto()
-            inProgress2Cancelled.firstStatusId = 3
-            inProgress2Cancelled.nextStatusId = 5
-            inProgress2Cancelled.noteRendered = false
-            inProgress2Cancelled.noteRequired = false
-            
-            let installationFlow = StatusChangeConfigurationDto()
-            installationFlow.objectTypeId = 1
-            installationFlow.statusFlowList = [assigned2EnRoute, enRoute2InProgress, inProgress2Done, inProgress2Cancelled]
-            
-            let gponCheckFlow = StatusChangeConfigurationDto()
-            gponCheckFlow.objectTypeId = 2
-            gponCheckFlow.statusFlowList = [assigned2EnRoute, enRoute2InProgress, inProgress2Done, inProgress2Cancelled]
-            
             let listDto = StatusChangeConfigurationListDto()
-            listDto.list = [installationFlow, gponCheckFlow]
+            listDto.list = self.storage.statusFlow
             return listDto.asValidRsponse(contentType: contentType)
         }
         // MARK: Tasks
@@ -577,7 +350,7 @@ class WebApplication {
             taskListDto.list = []
             
             ids.compactMap{ Int32($0) }.forEach { id in
-                if let taskDto = self.tasks[id] {
+                if let taskDto = self.storage.tasks[id] {
                     taskListDto.list?.append(taskDto)
                 }
             }
@@ -604,7 +377,7 @@ class WebApplication {
             case "GET":
                 
                 let listDto = TaskItemListDto()
-                listDto.taskItems = self.taskItems.filter { $0.value.taskId == taskId }.map { $0.value }
+                listDto.taskItems = self.storage.taskItems.filter { $0.value.taskId == taskId }.map { $0.value }
                 switch listDto.taskItems?.count ?? 0 {
                 case 0:
                     return .noContent
@@ -622,7 +395,7 @@ class WebApplication {
                     let taskItemId = WebApplication.getUniqueID()
                     inputDto.taskItemId = taskItemId
                     inputDto.taskId = taskId
-                    self.taskItems[taskItemId] = inputDto
+                    self.storage.taskItems[taskItemId] = inputDto
                     
                     let listDto = TaskItemListDto()
                     listDto.taskItems = [inputDto]
@@ -644,12 +417,12 @@ class WebApplication {
                 Logger.error("Input data", "Empty request body")
                 return .badRequest(nil)
             }
-            if let inputDto = try? JSONDecoder().decode(ItemDto.self, from: Data(bodyString.utf8)), let announcement = self.taskItems[announcementId] {
+            if let inputDto = try? JSONDecoder().decode(ItemDto.self, from: Data(bodyString.utf8)), let announcement = self.storage.taskItems[announcementId] {
             
                 let itemId = WebApplication.getUniqueID()
                 inputDto.id = itemId
                 inputDto.statusId = 6
-                inputDto.name = UUID().uuidString
+                inputDto.name = self.storage.itemTypes.filter { $0.id == inputDto.itemTypeId }.first?.typeName ?? "invalid"
                 announcement.item = inputDto
                 
                 return announcement.asValidRsponse(contentType: contentType)
@@ -661,14 +434,14 @@ class WebApplication {
         // MARK: Delete task item
         server.DELETE["/fsm-mobile/tasks/1/task-items/:id"] = { request in
             let taksItemId = Int32(request.params[":id"] ?? "")
-            self.taskItems = self.taskItems.filter { $0.value.taskItemId != taksItemId }
+            self.storage.taskItems = self.storage.taskItems.filter { $0.value.taskItemId != taksItemId }
             return .noContent
         }
         
         // MARK: Change task status
         server.PUT["/fsm-mobile/tasks/:id/status"] = { request in
 
-            guard let id = Int32(request.params[":id"] ?? ""), let taskDto = self.tasks[id] else {
+            guard let id = Int32(request.params[":id"] ?? ""), let taskDto = self.storage.tasks[id] else {
                 Logger.error("Status change", "Invalid task id \(request.path)")
                 return .badRequest(nil)
             }
@@ -687,7 +460,7 @@ class WebApplication {
                 changeDto.changeType = .update
                 changeDto.objectType = .task
                 changeDto.id = 1
-                self.dataChanges.append(changeDto)
+                self.storage.dataChanges.append(changeDto)
                 return .noContent
             }
         
@@ -699,7 +472,7 @@ class WebApplication {
         server.POST["/fsm-mobile/attachments/editComment"] = { request in
             
             if let inputDto = try? JSONDecoder().decode(AttachmentCommentDto.self, from: Data(request.bodyString!.utf8)) {
-                for task in self.tasks {
+                for task in self.storage.tasks {
                     for attachment in task.value.attachmentsInfo ?? [] {
                         if attachment.id == inputDto.attachmentId {
                             attachment.comment = inputDto.comment
@@ -713,7 +486,7 @@ class WebApplication {
         // MARK: Detele attachment from task
         server.DELETE["/fsm-mobile/attachments/:attachmentId/delete"] = { request in
             let attachmentId = Int32(request.params[":attachmentId"] ?? "")
-            for task in self.tasks {
+            for task in self.storage.tasks {
                 task.value.attachmentsInfo = task.value.attachmentsInfo?.filter { $0.id != attachmentId }
             }
             return .noContent
@@ -728,7 +501,7 @@ class WebApplication {
         server.POST["/fsm-mobile/tasks/:taskID/notes"] = { request in
             
             if let inputDto = try? JSONDecoder().decode(TaskNotesDto.self, from: Data(request.bodyString!.utf8)),
-                let taskID = Int32(request.params.first?.value ?? ""), let taskDto = self.tasks[taskID] {
+                let taskID = Int32(request.params.first?.value ?? ""), let taskDto = self.storage.tasks[taskID] {
                 inputDto.notes.forEach { note in
                     note.externalId = WebApplication.getUniqueID()
                     note.isFullNoteContentAvailable = true
@@ -743,17 +516,8 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/calendar/eventtypes"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let workTime = CalendarEventTypeDto()
-            workTime.id = 1
-            workTime.canBeCreated = true
-            workTime.canBeEdited = true
-            workTime.code = "WORK_TIME"
-            workTime.color = "#11EE11"
-            workTime.name = "Work time"
-            workTime.backgroundType = "EMPTY"
-            
             let listDto = CalendarEventTypeListDto()
-            listDto.list = [workTime]
+            listDto.list = self.storage.calendarEventTypes
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -790,13 +554,13 @@ class WebApplication {
         server.GET["/fsm-mobile/notifications/my/notdownloaded"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            if self.dataChanges.isEmpty {
+            if self.storage.dataChanges.isEmpty {
                 return .noContent
             }
             
             let listDto = DataChangeListDto()
-            listDto.list = self.dataChanges.map { $0 }
-            self.dataChanges = []
+            listDto.list = self.storage.dataChanges.map { $0 }
+            self.storage.dataChanges = []
             return listDto.asValidRsponse(contentType: contentType)
         }
         
