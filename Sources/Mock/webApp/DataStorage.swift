@@ -508,5 +508,23 @@ class DataStorage {
         default:
             break
         }
+        
+        if self.messages.isEmpty {
+
+            let recipient = self.users.filter { $0.id == 1 }.first
+            let sender = self.users.filter { $0.id == 18 }.first
+
+            let messageDto = MessageDto()
+            messageDto.id = WebApplication.getUniqueID()
+            messageDto.recipientId = recipient?.id
+            messageDto.recipientDisplayName = recipient?.fullName
+            messageDto.createDate = Date()
+            messageDto.senderFullName = sender?.fullName
+            messageDto.senderId = sender?.id
+            messageDto.status = "DELIVERED"
+            messageDto.content = "Please do not be late for work again..."
+            messageDto.priority = "LOW"
+            self.messages.append(messageDto)
+        }
     }
 }

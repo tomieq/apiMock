@@ -544,6 +544,8 @@ class WebApplication {
         server.GET["/fsm-mobile/messages/*"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
+            self.storage.addBusinessDataForToday()
+            
             let segments = request.path.split("/")
             let action = segments[2]
             switch action {
