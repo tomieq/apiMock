@@ -485,6 +485,29 @@ class WebApplication {
             return .noContent
         }
         
+        // MARK: upload attachment
+        server.POST["/fsm-mobile/attachments/upload"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            
+            let objectIdString = request.queryParams.filter { $0.0 == "objectId" }.first?.1
+            let fileName = request.queryParams.filter { $0.0 == "fileName" }.first?.1
+            
+            guard let taskID = Int32(objectIdString ?? ""), let taskDto = (self.storage.tasks.filter { $0.id == taskID }.first) else {
+                return .badRequest(nil)
+            }
+            let dto = AttachmentInfoDto()
+            dto.id = WebApplication.getUniqueID()
+            dto.fileName = fileName
+            dto.createDate = Date()
+            dto.createUserFullName = self.storage.users.filter { $0.id == 1 }.first?.fullName
+            dto.canDelete = true
+            dto.attachmentType = "TASK"
+            dto.size = Int32(request.body.count)
+            
+            taskDto.attachmentsInfo?.append(dto)
+            return dto.asValidRsponse(contentType: contentType)
+        }
+        
         // MARK: Update attachment's properties
         server.PUT["/fsm-mobile/attachments/:attachmentID/properties"] = { request in
             return .noContent

@@ -47,51 +47,70 @@ class DataStorage {
     }
     
     private func initComponents() {
+        
+        self.components = []
+        
         let tasksModule = ConfigurationComponentDto()
         tasksModule.code = .tasks
         tasksModule.type = .module
         tasksModule.sequence = 1
+        self.components.append(tasksModule)
         
         let calendarModule = ConfigurationComponentDto()
         calendarModule.code = .calendar
         calendarModule.type = .module
         calendarModule.sequence = 2
+        self.components.append(calendarModule)
         
         let messagesModule = ConfigurationComponentDto()
         messagesModule.code = .messages
         messagesModule.type = .module
         messagesModule.sequence = 3
+        self.components.append(messagesModule)
         
         let absenceModule = ConfigurationComponentDto()
         absenceModule.code = .absence
         absenceModule.type = .module
         absenceModule.sequence = 0
+        self.components.append(absenceModule)
         
         let addAnnouncementButton = ConfigurationComponentDto()
         addAnnouncementButton.code = .addAnnouncementButton
         addAnnouncementButton.type = .button
         addAnnouncementButton.sequence = 0
+        self.components.append(addAnnouncementButton)
         
         let addItemButton = ConfigurationComponentDto()
         addItemButton.code = .addItemButton
         addItemButton.type = .button
         addItemButton.sequence = 0
+        self.components.append(addItemButton)
+        
+        let addPictureButton = ConfigurationComponentDto()
+        addPictureButton.code = .addPictureFromGalleryButton
+        addPictureButton.type = .button
+        addPictureButton.sequence = 0
+        self.components.append(addPictureButton)
         
         let itemChangeStatusButton = ConfigurationComponentDto()
         itemChangeStatusButton.code = .changeItemStatusButton
         itemChangeStatusButton.type = .button
         itemChangeStatusButton.sequence = 0
-        
-        self.components = [tasksModule, calendarModule, messagesModule, absenceModule, addAnnouncementButton, addItemButton, itemChangeStatusButton]
+        self.components.append(itemChangeStatusButton)
+
     }
     
     private func initSystemParameters() {
+        
+        self.systemParameters = []
+        
         let syncTime = SystemParameterDto()
         syncTime.id = WebApplication.getUniqueID()
         syncTime.name = UUID().uuidString
         syncTime.code = "MOBILE_SYNCHRONIZATION_INTERVAL"
         syncTime.type = "NUMBER_VALUE"
         syncTime.intValue = 60
+        self.systemParameters.append(syncTime)
         
         let sessionTime = SystemParameterDto()
         sessionTime.name = UUID().uuidString
@@ -99,6 +118,7 @@ class DataStorage {
         sessionTime.code = "MOBILE_SESSION_TIME_IN_MINUTES"
         sessionTime.type = "NUMBER_VALUE"
         sessionTime.intValue = 60
+        self.systemParameters.append(sessionTime)
         
         let calendarBack = SystemParameterDto()
         calendarBack.name = UUID().uuidString
@@ -106,15 +126,39 @@ class DataStorage {
         calendarBack.code = "NUMBER_OF_DAYS_IN_PAST_FOR_MOBILE_CALENDAR"
         calendarBack.type = "NUMBER_VALUE"
         calendarBack.intValue = 2
-        
+        self.systemParameters.append(calendarBack)
+
         let calendarForward = SystemParameterDto()
         calendarForward.name = UUID().uuidString
         calendarForward.id = WebApplication.getUniqueID()
         calendarForward.code = "NUMBER_OF_DAYS_IN_FUTURE_FOR_MOBILE_CALENDAR"
         calendarForward.type = "NUMBER_VALUE"
         calendarForward.intValue = 7
-
-        self.systemParameters = [syncTime, sessionTime, calendarBack, calendarForward]
+        self.systemParameters.append(calendarForward)
+        
+        let maxAttachmentSize = SystemParameterDto()
+        maxAttachmentSize.name = UUID().uuidString
+        maxAttachmentSize.id = WebApplication.getUniqueID()
+        maxAttachmentSize.code = "MAX_ATTACHMENT_SIZE"
+        maxAttachmentSize.type = "NUMBER_VALUE"
+        maxAttachmentSize.intValue = 1024 * 1024 * 2
+        self.systemParameters.append(maxAttachmentSize)
+        
+        let maxAttachmentWidth = SystemParameterDto()
+        maxAttachmentWidth.name = UUID().uuidString
+        maxAttachmentWidth.id = WebApplication.getUniqueID()
+        maxAttachmentWidth.code = "MAX_PHOTO_RESOLUTION_WIDTH"
+        maxAttachmentWidth.type = "NUMBER_VALUE"
+        maxAttachmentWidth.intValue = 4200
+        self.systemParameters.append(maxAttachmentWidth)
+        
+        let maxAttachmentHeight = SystemParameterDto()
+        maxAttachmentHeight.name = UUID().uuidString
+        maxAttachmentHeight.id = WebApplication.getUniqueID()
+        maxAttachmentHeight.code = "MAX_PHOTO_RESOLUTION_HEIGHT"
+        maxAttachmentHeight.type = "NUMBER_VALUE"
+        maxAttachmentHeight.intValue = 3200
+        self.systemParameters.append(maxAttachmentHeight)
     }
     
     private func initOrderTypes() {
