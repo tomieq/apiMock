@@ -35,28 +35,14 @@ class TaskBuilder {
         taskDto.additionalInformationMap = [:]
         taskDto.additionalInformationMap?["Technology"] = "GPON"
         
-        let attachmentQuestionLabel1 = ItemLabelValuesPairDto()
-        attachmentQuestionLabel1.label = "Is antenna visible?"
-        attachmentQuestionLabel1.sequence = 1
-        attachmentQuestionLabel1.values = []
-        let attachmentQuestion1 = TaskTabSectionItemDto()
-        attachmentQuestion1.code = "IS_ANTENNA_VISIBLE"
-        attachmentQuestion1.itemViewType = "INPUT_BOOLEAN"
+        let attachmentQuestion1 = TaskBuilder.makeFormRow(1, question: "Is antenna visible?", type: "INPUT_BOOLEAN")
         attachmentQuestion1.propertyClass = "ATTACHMENT"
         attachmentQuestion1.itemId = 1
-        attachmentQuestion1.itemLabelValuesPairList = [attachmentQuestionLabel1]
-        attachmentQuestion1.sequence = 1
-        let attachmentQuestionLabel2 = ItemLabelValuesPairDto()
-        attachmentQuestionLabel2.label = "Describe picture"
-        attachmentQuestionLabel2.sequence = 1
-        attachmentQuestionLabel2.values = []
-        let attachmentQuestion2 = TaskTabSectionItemDto()
-        attachmentQuestion2.code = "DESCRIPTION"
-        attachmentQuestion2.itemViewType = "INPUT_TEXT"
+        
+        let attachmentQuestion2 = TaskBuilder.makeFormRow(2, question: "Describe picture", type: "INPUT_TEXT")
         attachmentQuestion2.propertyClass = "ATTACHMENT"
-        attachmentQuestion2.itemId = 1
-        attachmentQuestion2.itemLabelValuesPairList = [attachmentQuestionLabel2]
-        attachmentQuestion2.sequence = 2
+        attachmentQuestion2.itemId = 2
+
         let attachmentSection = TaskTabSectionDto()
         attachmentSection.sectionName = "Details"
         attachmentSection.sequence = 1
@@ -68,7 +54,7 @@ class TaskBuilder {
         attachmentTab.tabSections = [attachmentSection]
         
         let pictureAttachment = AttachmentInfoDto()
-        pictureAttachment.id = 1
+        pictureAttachment.id = WebApplication.getUniqueID()
         pictureAttachment.canDelete = true
         pictureAttachment.fileName = "patchpanel_connections.jpg"
         pictureAttachment.createDate = Date()
@@ -83,19 +69,12 @@ class TaskBuilder {
         let basicSection = TaskTabSectionDto()
         basicSection.sequence = 1
         basicSection.sectionName = "Basic"
+        basicSection.tabSectionItems = []
         
-        let statusRow = TaskTabSectionItemDto()
-        statusRow.sequence = 5
-        statusRow.itemViewType = "STATUS"
-        
-        let statusLabel = ItemLabelValuesPairDto()
-        statusLabel.sequence = 1
-        statusLabel.label = "Status"
-        statusLabel.values = []
-        
-        statusRow.itemLabelValuesPairList = [statusLabel]
-        
-        basicSection.tabSectionItems = [statusRow]
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Processing signature", type: "STATIC_DATA").setStringValue(UUID().uuidString))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Create date", type: "STATIC_DATA").setDateValue(Date()))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(5, question: "Status", type: "STATUS"))
+
 
         let generalTab = TaskTabDto()
         generalTab.sequence = 1
@@ -174,7 +153,7 @@ class TaskBuilder {
         return tabs
     }
     
-    private static func makeFormRow(_ sequence: Int32, question: String, type: String) -> TaskTabSectionItemDto {
+    static func makeFormRow(_ sequence: Int32, question: String, type: String) -> TaskTabSectionItemDto {
         let label = ItemLabelValuesPairDto()
         label.sequence = 1
         label.label = question
@@ -187,5 +166,26 @@ class TaskBuilder {
         questionRow.propertyClass = "TASK"
         questionRow.itemLabelValuesPairList = [label]
         return questionRow
+    }
+    
+}
+
+extension TaskTabSectionItemDto {
+    func setStringValue(_ text: String) -> TaskTabSectionItemDto {
+        
+        let value = ItemValueDto()
+        value.stringValue = text
+        value.type = "STRING"
+        self.itemLabelValuesPairList?.first?.values = [value]
+        return self
+    }
+
+    func setDateValue(_ date: Date) -> TaskTabSectionItemDto {
+        
+        let value = ItemValueDto()
+        value.dateValue = date
+        value.type = "DATE"
+        self.itemLabelValuesPairList?.first?.values = [value]
+        return self
     }
 }

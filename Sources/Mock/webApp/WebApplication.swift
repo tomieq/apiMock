@@ -7,16 +7,21 @@
 
 import Foundation
 
+let resourcesPath = FileManager.default.currentDirectoryPath + String.pathSeparator + "Resources" + String.pathSeparator
+
 class WebApplication {
 
-    private static var randomID: Int32 = 1000
-    let tasks: [Int32: TaskDto]
+    private static var internalCounter: Int32 = 1000
+    var tasks: [Int32: TaskDto] = [:]
     var taskItems: [Int32: TaskItemDto] = [:]
     var dataChanges: [DataChangeDto] = []
     
     init(_ server: HttpServer) {
 
-        self.tasks = [ 1 : TaskBuilder.makeTaskDto(id: 1), 2 : TaskBuilder.makeTaskDto(id: 2)]
+        for _ in 1...3 {
+            let taskID = WebApplication.getUniqueID()
+            self.tasks[taskID] = TaskBuilder.makeTaskDto(id: taskID)
+        }
         
         server["/"] = { request in
             return .notFound
@@ -383,6 +388,31 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: user's work status
+        server.GET["/fsm-mobile/users/workStatus/config"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            let dto = UserConfigDto()
+            dto.configurationMap = [:]
+            
+            let section = TaskTabSectionDto()
+            section.sectionName = "Parameters"
+            section.sequence = 1
+            section.tabSectionItems = []
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(1, question: "Ready for work?", type: "INPUT_BOOLEAN"))
+            
+            let tab = TaskTabDto()
+            tab.sequence = 1
+            tab.tabSections = [section]
+            dto.configurationMap = [:]
+            dto.configurationMap?["STARTED"] = tab
+            return dto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: change user's status
+        server.PUT["/fsm-mobile/users/workStatus/technicianChangeStatus"] = { request in
+            return .noContent
+        }
+        
         // MARK: Configuration components
         server.GET["/fsm-mobile/configuration/components"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
@@ -391,6 +421,17 @@ class WebApplication {
             tasksModule.code = .tasks
             tasksModule.type = .module
             tasksModule.sequence = 1
+            
+            let calendarModule = ConfigurationComponentDto()
+            calendarModule.code = .calendar
+            calendarModule.type = .module
+            calendarModule.sequence = 2
+            
+            
+            let absenceModule = ConfigurationComponentDto()
+            absenceModule.code = .absence
+            absenceModule.type = .module
+            absenceModule.sequence = 0
             
             let addAnnouncementButton = ConfigurationComponentDto()
             addAnnouncementButton.code = .addAnnouncementButton
@@ -408,7 +449,7 @@ class WebApplication {
             itemChangeStatusButton.sequence = 0
             
             let listDto = ConfigurationComponentListDto()
-            listDto.list = [tasksModule, addAnnouncementButton, addItemButton, itemChangeStatusButton]
+            listDto.list = [tasksModule, calendarModule, absenceModule, addAnnouncementButton, addItemButton, itemChangeStatusButton]
             listDto.componentByTypeList = []
             return listDto.asValidRsponse(contentType: contentType)
         }
@@ -576,7 +617,7 @@ class WebApplication {
                 }
                 if let inputDto = try? JSONDecoder().decode(TaskItemDto.self, from: Data(bodyString.utf8)) {
                 
-                    let taskItemId = WebApplication.getRandomID()
+                    let taskItemId = WebApplication.getUniqueID()
                     inputDto.taskItemId = taskItemId
                     inputDto.taskId = taskId
                     self.taskItems[taskItemId] = inputDto
@@ -603,7 +644,7 @@ class WebApplication {
             }
             if let inputDto = try? JSONDecoder().decode(ItemDto.self, from: Data(bodyString.utf8)), let announcement = self.taskItems[announcementId] {
             
-                let itemId = WebApplication.getRandomID()
+                let itemId = WebApplication.getUniqueID()
                 inputDto.id = itemId
                 inputDto.statusId = 6
                 inputDto.name = UUID().uuidString
@@ -667,6 +708,15 @@ class WebApplication {
             return .noContent
         }
         
+        // MARK: Detele attachment from task
+        server.DELETE["/fsm-mobile/attachments/:attachmentId/delete"] = { request in
+            let attachmentId = Int32(request.params[":attachmentId"] ?? "")
+            for task in self.tasks {
+                task.value.attachmentsInfo = task.value.attachmentsInfo?.filter { $0.id != attachmentId }
+            }
+            return .noContent
+        }
+        
         // MARK: Update attachment's properties
         server.PUT["/fsm-mobile/attachments/:attachmentID/properties"] = { request in
             return .noContent
@@ -678,13 +728,55 @@ class WebApplication {
             if let inputDto = try? JSONDecoder().decode(TaskNotesDto.self, from: Data(request.bodyString!.utf8)),
                 let taskID = Int32(request.params.first?.value ?? ""), let taskDto = self.tasks[taskID] {
                 inputDto.notes.forEach { note in
-                    note.externalId = WebApplication.getRandomID()
+                    note.externalId = WebApplication.getUniqueID()
                     note.isFullNoteContentAvailable = true
                     taskDto.notes?.append(note)
                 }
                 
             }
             return .noContent
+        }
+        
+        // MARK: calendar's event types
+        server.GET["/fsm-mobile/configuration/calendar/eventtypes"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            
+            let workTime = CalendarEventTypeDto()
+            workTime.id = 1
+            workTime.canBeCreated = true
+            workTime.canBeEdited = true
+            workTime.code = "WORK_TIME"
+            workTime.color = "#11EE11"
+            workTime.name = "Work time"
+            workTime.backgroundType = "EMPTY"
+            
+            let listDto = CalendarEventTypeListDto()
+            listDto.list = [workTime]
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: calendar's events
+        server.GET["/fsm-mobile/calendars/my"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            
+            let listDto = CalendarEventListDto()
+            listDto.events = []
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: calendar version
+        server.GET["/fsm-mobile/calendars/my/version"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            return .ok(.data(UUID().uuidString.data(using: .utf8)!, contentType: contentType))
+        }
+        
+        // MARK create new calendar event
+        server.POST["/fsm-mobile/calendars/create"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            let dto = CalendarUpdateResultDto()
+            dto.id = WebApplication.getUniqueID()
+            dto.calendarVersion = UUID().uuidString
+            return dto.asValidRsponse(contentType: contentType)
         }
         
         // MARK: Report GPS position
@@ -713,8 +805,9 @@ class WebApplication {
         
         // MARK: Download attachment
         server.GET["/fsm-mobile/attachments/:fileID"] = { request in
-
-            let filename = "attachment\(request.params.first?.value ?? "").jpg"
+            
+            //let filename = "attachment\(request.params.first?.value ?? "").jpg"
+            let filename = "attachment1.jpg"
             do {
                let filePath = resourcesPath + filename
                Logger.info("Open file", filePath)
@@ -776,8 +869,8 @@ class WebApplication {
         }
     }
     
-    static func getRandomID() -> Int32 {
-        WebApplication.randomID = WebApplication.randomID + 1
-        return WebApplication.randomID
+    static func getUniqueID() -> Int32 {
+        WebApplication.internalCounter = WebApplication.internalCounter + 1
+        return WebApplication.internalCounter
     }
 }
