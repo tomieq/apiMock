@@ -474,6 +474,13 @@ class DataStorage {
     
     func addBusinessDataForToday() {
         
+        // delete data older than 5 days
+        if let deleteBorderDate = Date.startOfDay().dateAdding(dayCount: -5) {
+            self.calendarEvents = self.calendarEvents.filter { $0.timeRange?.dateFrom ?? Date() > deleteBorderDate }
+            self.tasks = self.tasks.filter { $0.scheduledRealizationTime?.dateFrom ?? Date() > deleteBorderDate }
+            self.messages = self.messages.filter { $0.createDate ?? Date() > deleteBorderDate }
+        }
+        
         let todayCalendarEvents = self.calendarEvents.filter { $0.timeRange?.dateFrom ?? Date() > Date.startOfDay() && $0.timeRange?.dateFrom ?? Date() < Date.endOfDay() }
         
         let todayOpenTasks = self.tasks.filter{ $0.scheduledRealizationTime?.dateFrom ?? Date() > Date.startOfDay() && $0.scheduledRealizationTime?.dateFrom ?? Date() < Date.endOfDay() }.filter {  ![4, 5].contains($0.statusId)  }
