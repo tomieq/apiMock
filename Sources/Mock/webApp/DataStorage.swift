@@ -10,8 +10,10 @@ import Foundation
 class DataStorage {
     
     var components: [ConfigurationComponentDto] = []
-    var tasks: [Int32: TaskDto] = [:]
-    var taskItems: [Int32: TaskItemDto] = [:]
+    var systemParameters: [SystemParameterDto] = []
+    var tasks: [TaskDto] = []
+    var calendarEvents: [CalendarEventDto] = []
+    var taskItems: [TaskItemDto] = []
     var dataChanges: [DataChangeDto] = []
     var orderTypes: [WorkOrderTypeDto] = []
     var taskTypes: [TaskTypeDto] = []
@@ -26,6 +28,7 @@ class DataStorage {
     
     init() {
         self.initComponents()
+        self.initSystemParameters()
         self.initOrderTypes()
         self.initTaskTypes()
         self.initDictionaries()
@@ -71,6 +74,38 @@ class DataStorage {
         itemChangeStatusButton.sequence = 0
         
         self.components = [tasksModule, calendarModule, absenceModule, addAnnouncementButton, addItemButton, itemChangeStatusButton]
+    }
+    
+    private func initSystemParameters() {
+        let syncTime = SystemParameterDto()
+        syncTime.id = 1
+        syncTime.name = UUID().uuidString
+        syncTime.code = "MOBILE_SYNCHRONIZATION_INTERVAL"
+        syncTime.type = "NUMBER_VALUE"
+        syncTime.intValue = 60
+        
+        let sessionTime = SystemParameterDto()
+        sessionTime.name = UUID().uuidString
+        sessionTime.id = 2
+        sessionTime.code = "MOBILE_SESSION_TIME_IN_MINUTES"
+        sessionTime.type = "NUMBER_VALUE"
+        sessionTime.intValue = 60
+        
+        let calendarBack = SystemParameterDto()
+        calendarBack.name = UUID().uuidString
+        calendarBack.id = 3
+        calendarBack.code = "NUMBER_OF_DAYS_IN_PAST_FOR_MOBILE_CALENDAR"
+        calendarBack.type = "NUMBER_VALUE"
+        calendarBack.intValue = 2
+        
+        let calendarForward = SystemParameterDto()
+        calendarForward.name = UUID().uuidString
+        calendarForward.id = 4
+        calendarForward.code = "NUMBER_OF_DAYS_IN_FUTURE_FOR_MOBILE_CALENDAR"
+        calendarForward.type = "NUMBER_VALUE"
+        calendarForward.intValue = 7
+
+        self.systemParameters = [syncTime, sessionTime, calendarBack, calendarForward]
     }
     
     private func initOrderTypes() {
@@ -320,5 +355,36 @@ class DataStorage {
         flagSLAExceeded.name = "SLA Exceeded"
         
         self.taskFlags = [flagInRisk, flagSLAExceeded]
+    }
+    
+    func addBusinessDataForToday() {
+        
+        let todayCalendarEvents = self.calendarEvents.filter { $0.timeRange?.dateFrom ?? Date() > Date.startOfDay() && $0.timeRange?.dateFrom ?? Date() < Date.endOfDay() }
+        
+        let todayOpenTasks = self.tasks.filter{ $0.scheduledRealizationTime?.dateFrom ?? Date() > Date.startOfDay() && $0.scheduledRealizationTime?.dateFrom ?? Date() < Date.endOfDay() }.filter {  ![4, 5].contains($0.statusId)  }
+        
+        switch todayCalendarEvents.count {
+        case 0:
+            let workingTime = CalendarEventDto()
+            workingTime.id = WebApplication.getUniqueID()
+            workingTime.eventTypeId = 1
+            workingTime.setRange(from: Date().dateWithTime(hour: 8, minute: 00), to: Date().dateWithTime(hour: 16, minute: 30))
+            self.calendarEvents.append(workingTime)
+        default:
+            break
+        }
+        
+        switch todayOpenTasks.count {
+        case ...3:
+            let date = todayOpenTasks.sorted { $0.scheduledRealizationTime?.dateFrom ?? Date() < $1.scheduledRealizationTime?.dateFrom ?? Date() }.last?.scheduledRealizationTime?.dateTo ?? Date().dateWithTime(hour: 8, minute: 00)
+            for index in 0...(2 - todayOpenTasks.count) {
+                let taskID = WebApplication.getUniqueID()
+                let taskDto = TaskBuilder.makeTaskDto(id: taskID)
+                taskDto.schedule(from: date?.dateAdding(minuteCount: index * 15), to: date?.dateAdding(minuteCount: 15 + index * 15))
+                self.tasks.append(taskDto)
+            }
+        default:
+            break
+        }
     }
 }

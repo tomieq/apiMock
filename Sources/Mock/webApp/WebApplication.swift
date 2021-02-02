@@ -16,13 +16,6 @@ class WebApplication {
     
     init(_ server: HttpServer) {
 
-        for index in 1...3 {
-            let taskID = WebApplication.getUniqueID()
-            let taskDto = TaskBuilder.makeTaskDto(id: taskID)
-            taskDto.schedule(from: Date().dateAdding(minuteCount: index * 30), to: Date().dateAdding(minuteCount: 30 + index * 30))
-            self.storage.tasks[taskID] = taskDto
-        }
-        
         server["/"] = { request in
             return .notFound
         }
@@ -54,6 +47,9 @@ class WebApplication {
         }
         
         server.POST["/auth/realms/:tenant/protocol/openid-connect/token"] = { request in
+            
+            self.storage.addBusinessDataForToday()
+            
             let contentType = request.headers["accept"] ?? "application/json"
             let dto = OAuthAccessTokenDto()
             dto.accessToken = UUID().uuidString
@@ -130,7 +126,7 @@ class WebApplication {
             let contentType = request.headers["accept"] ?? "application/json"
             
             let listDto = SystemParameterListDto()
-            listDto.list = []
+            listDto.list = self.storage.systemParameters
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -305,8 +301,10 @@ class WebApplication {
         server.GET["/fsm-mobile/tasks/my/ids"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
+            self.storage.addBusinessDataForToday()
+
             let dto = TasksIdListDto()
-            dto.ids = self.storage.tasks.map { $0.key }
+            dto.ids = self.storage.tasks.compactMap { $0.id }
             return dto.asValidRsponse(contentType: contentType)
         }
 
@@ -350,7 +348,7 @@ class WebApplication {
             taskListDto.list = []
             
             ids.compactMap{ Int32($0) }.forEach { id in
-                if let taskDto = self.storage.tasks[id] {
+                if let taskDto = (self.storage.tasks.filter{ $0.id == id }.first) {
                     taskListDto.list?.append(taskDto)
                 }
             }
@@ -377,7 +375,7 @@ class WebApplication {
             case "GET":
                 
                 let listDto = TaskItemListDto()
-                listDto.taskItems = self.storage.taskItems.filter { $0.value.taskId == taskId }.map { $0.value }
+                listDto.taskItems = self.storage.taskItems.filter { $0.taskId == taskId }
                 switch listDto.taskItems?.count ?? 0 {
                 case 0:
                     return .noContent
@@ -395,7 +393,7 @@ class WebApplication {
                     let taskItemId = WebApplication.getUniqueID()
                     inputDto.taskItemId = taskItemId
                     inputDto.taskId = taskId
-                    self.storage.taskItems[taskItemId] = inputDto
+                    self.storage.taskItems.append(inputDto)
                     
                     let listDto = TaskItemListDto()
                     listDto.taskItems = [inputDto]
@@ -417,7 +415,7 @@ class WebApplication {
                 Logger.error("Input data", "Empty request body")
                 return .badRequest(nil)
             }
-            if let inputDto = try? JSONDecoder().decode(ItemDto.self, from: Data(bodyString.utf8)), let announcement = self.storage.taskItems[announcementId] {
+            if let inputDto = try? JSONDecoder().decode(ItemDto.self, from: Data(bodyString.utf8)), let announcement = (self.storage.taskItems.filter { $0.taskItemId == announcementId }.first) {
             
                 let itemId = WebApplication.getUniqueID()
                 inputDto.id = itemId
@@ -434,14 +432,14 @@ class WebApplication {
         // MARK: Delete task item
         server.DELETE["/fsm-mobile/tasks/1/task-items/:id"] = { request in
             let taksItemId = Int32(request.params[":id"] ?? "")
-            self.storage.taskItems = self.storage.taskItems.filter { $0.value.taskItemId != taksItemId }
+            self.storage.taskItems = self.storage.taskItems.filter { $0.taskItemId != taksItemId }
             return .noContent
         }
         
         // MARK: Change task status
         server.PUT["/fsm-mobile/tasks/:id/status"] = { request in
 
-            guard let id = Int32(request.params[":id"] ?? ""), let taskDto = self.storage.tasks[id] else {
+            guard let id = Int32(request.params[":id"] ?? ""), let taskDto = (self.storage.tasks.filter { $0.id == id }.first) else {
                 Logger.error("Status change", "Invalid task id \(request.path)")
                 return .badRequest(nil)
             }
@@ -473,7 +471,7 @@ class WebApplication {
             
             if let inputDto = try? JSONDecoder().decode(AttachmentCommentDto.self, from: Data(request.bodyString!.utf8)) {
                 for task in self.storage.tasks {
-                    for attachment in task.value.attachmentsInfo ?? [] {
+                    for attachment in task.attachmentsInfo ?? [] {
                         if attachment.id == inputDto.attachmentId {
                             attachment.comment = inputDto.comment
                         }
@@ -487,7 +485,7 @@ class WebApplication {
         server.DELETE["/fsm-mobile/attachments/:attachmentId/delete"] = { request in
             let attachmentId = Int32(request.params[":attachmentId"] ?? "")
             for task in self.storage.tasks {
-                task.value.attachmentsInfo = task.value.attachmentsInfo?.filter { $0.id != attachmentId }
+                task.attachmentsInfo = task.attachmentsInfo?.filter { $0.id != attachmentId }
             }
             return .noContent
         }
@@ -501,7 +499,7 @@ class WebApplication {
         server.POST["/fsm-mobile/tasks/:taskID/notes"] = { request in
             
             if let inputDto = try? JSONDecoder().decode(TaskNotesDto.self, from: Data(request.bodyString!.utf8)),
-                let taskID = Int32(request.params.first?.value ?? ""), let taskDto = self.storage.tasks[taskID] {
+                let taskID = Int32(request.params.first?.value ?? ""), let taskDto = (self.storage.tasks.filter{ $0.id == taskID }.first) {
                 inputDto.notes.forEach { note in
                     note.externalId = WebApplication.getUniqueID()
                     note.isFullNoteContentAvailable = true
@@ -524,9 +522,11 @@ class WebApplication {
         // MARK: calendar's events
         server.GET["/fsm-mobile/calendars/my"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
-            
+                        
+            self.storage.addBusinessDataForToday()
+
             let listDto = CalendarEventListDto()
-            listDto.events = []
+            listDto.events = self.storage.calendarEvents
             return listDto.asValidRsponse(contentType: contentType)
         }
         

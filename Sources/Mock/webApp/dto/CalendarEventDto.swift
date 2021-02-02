@@ -33,3 +33,12 @@ class CalendarEventDto: Codable {
     var addressActionString: String?
     var priorityId: Int32?
 }
+
+extension CalendarEventDto {
+    func setRange(from: Date?, to: Date?) {
+        let range = TimeRangeDto()
+        range.dateFrom = from
+        range.dateTo = to
+        self.timeRange = range
+    }
+}
