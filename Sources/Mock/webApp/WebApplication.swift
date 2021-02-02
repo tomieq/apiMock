@@ -18,9 +18,11 @@ class WebApplication {
     
     init(_ server: HttpServer) {
 
-        for _ in 1...3 {
+        for index in 1...3 {
             let taskID = WebApplication.getUniqueID()
-            self.tasks[taskID] = TaskBuilder.makeTaskDto(id: taskID)
+            let taskDto = TaskBuilder.makeTaskDto(id: taskID)
+            taskDto.schedule(from: Date().dateAdding(minuteCount: index * 30), to: Date().dateAdding(minuteCount: 30 + index * 30))
+            self.tasks[taskID] = taskDto
         }
         
         server["/"] = { request in

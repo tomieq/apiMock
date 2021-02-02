@@ -93,3 +93,13 @@ class TaskDto: Codable {
         case isTaskLocked
     }
 }
+
+
+extension TaskDto {
+    func schedule(from: Date?, to: Date?) {
+        let range = TimeRangeDto()
+        range.dateFrom = from
+        range.dateTo = to
+        self.scheduledRealizationTime = range
+    }
+}
