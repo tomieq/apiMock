@@ -377,8 +377,17 @@ class DataStorage {
         workTime.color = "#11EE11"
         workTime.name = "Work time"
         workTime.backgroundType = "EMPTY"
+
+        let taskProcessing = CalendarEventTypeDto()
+        taskProcessing.id = 2
+        taskProcessing.canBeCreated = false
+        taskProcessing.canBeEdited = false
+        taskProcessing.code = "TASK"
+        taskProcessing.color = "#1111EE"
+        taskProcessing.name = "Task"
+        taskProcessing.backgroundType = "EMPTY"
         
-        self.calendarEventTypes = [workTime]
+        self.calendarEventTypes = [workTime, taskProcessing]
     }
     
     private func initTaskFlags() {
@@ -505,12 +514,32 @@ class DataStorage {
                 taskDto.schedule(from: date?.dateAdding(minuteCount: index * 15), to: date?.dateAdding(minuteCount: 15 + index * 15))
                 self.tasks.append(taskDto)
                 
-                let dataChange = DataChangeDto()
-                dataChange.changeType = .insert
-                dataChange.objectType = .task
-                dataChange.objectId = taskID
-                dataChange.id = WebApplication.getUniqueID()
-                self.dataChanges.append(dataChange)
+                let taskChange = DataChangeDto()
+                taskChange.changeType = .insert
+                taskChange.objectType = .task
+                taskChange.objectId = taskID
+                taskChange.id = WebApplication.getUniqueID()
+                self.dataChanges.append(taskChange)
+                
+                let calendarDto = CalendarEventDto()
+                calendarDto.eventTypeId = 2
+                calendarDto.id = WebApplication.getUniqueID()
+                calendarDto.taskBusinessKey = taskDto.bussinesKey
+                calendarDto.priorityId = taskDto.priorityId
+                calendarDto.taskId = taskDto.id
+                calendarDto.taskTypeId = taskDto.typeId
+                calendarDto.taskTypeName = self.taskTypes.filter { $0.id == taskDto.typeId }.first?.name
+                calendarDto.orderTypeName = self.orderTypes.filter { $0.id == taskDto.workOrderTypeId }.first?.name
+                calendarDto.isTaskLocked = false
+                calendarDto.setRange(from: taskDto.scheduledRealizationTime?.dateFrom, to: taskDto.scheduledRealizationTime?.dateTo)
+                self.calendarEvents.append(calendarDto)
+                
+                let calendarChange = DataChangeDto()
+                calendarChange.changeType = .insert
+                calendarChange.objectType = .calendarEvent
+                calendarChange.objectId = calendarDto.id
+                calendarChange.id = WebApplication.getUniqueID()
+                self.dataChanges.append(calendarChange)
             }
         default:
             break

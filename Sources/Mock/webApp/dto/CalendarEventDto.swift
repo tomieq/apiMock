@@ -10,7 +10,7 @@ import Foundation
 class CalendarEventListDto: Codable {
     
     var calendarVersion: String?
-    var events: [CalendarEventDto] = []
+    var events: [CalendarEventDto]? = []
     
     enum CodingKeys: String, CodingKey {
         case calendarVersion

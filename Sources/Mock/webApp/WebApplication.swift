@@ -501,12 +501,24 @@ class WebApplication {
                     taskDto.notes?.append(note)
                     
                     if note.note?.lowercased() == "delete" {
-                        let changeDto = DataChangeDto()
-                        changeDto.objectId = taskDto.id
-                        changeDto.changeType = .delete
-                        changeDto.objectType = .task
-                        changeDto.id = WebApplication.getUniqueID()
-                        self.storage.dataChanges.append(changeDto)
+                        let taskChange = DataChangeDto()
+                        taskChange.objectId = taskDto.id
+                        taskChange.changeType = .delete
+                        taskChange.objectType = .task
+                        taskChange.id = WebApplication.getUniqueID()
+                        self.storage.dataChanges.append(taskChange)
+                        self.storage.tasks = self.storage.tasks.filter { $0.id != taskID }
+                        
+                        if let calendar = (self.storage.calendarEvents.filter { $0.taskId == taskID}.first) {
+                            let calendarChange = DataChangeDto()
+                            calendarChange.objectId = calendar.id
+                            calendarChange.changeType = .delete
+                            calendarChange.objectType = .calendarEvent
+                            calendarChange.id = WebApplication.getUniqueID()
+                            self.storage.dataChanges.append(calendarChange)
+                            self.storage.calendarEvents = self.storage.calendarEvents.filter { $0.id != calendar.id }
+                        }
+                        
                     }
                 }
                 
@@ -523,15 +535,35 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: calendar's events
-        server.GET["/fsm-mobile/calendars/my"] = { request in
+        // MARK: calendar
+        server.GET["/fsm-mobile/calendars/*"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
                         
             self.storage.addBusinessDataForToday()
 
-            let listDto = CalendarEventListDto()
-            listDto.events = self.storage.calendarEvents
-            return listDto.asValidRsponse(contentType: contentType)
+            let segments = request.path.split("/")
+            let action = segments[2]
+            
+            switch action {
+            case "my":
+                let listDto = CalendarEventListDto()
+                listDto.events = self.storage.calendarEvents
+                self.storage.dataChanges = self.storage.dataChanges.filter { $0.objectType != .calendarEvent }
+                return listDto.asValidRsponse(contentType: contentType)
+            default:
+                let ids = action.split(",")
+                let listDto = CalendarEventListDto()
+                listDto.events = []
+                
+                ids.compactMap{ Int32($0) }.forEach { id in
+                    if let calendarDto = (self.storage.calendarEvents.filter{ $0.id == id }.first) {
+                        listDto.events?.append(calendarDto)
+                    }
+                }
+                return listDto.asValidRsponse(contentType: contentType)
+            }
+            
+            
         }
         
         // MARK: calendar version
@@ -653,6 +685,8 @@ class WebApplication {
         // MARK: Get data changes
         server.GET["/fsm-mobile/notifications/my/notdownloaded"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
+            
+            self.storage.addBusinessDataForToday()
             
             if self.storage.dataChanges.isEmpty {
                 return .noContent
