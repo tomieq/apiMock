@@ -499,6 +499,15 @@ class WebApplication {
                     note.externalId = WebApplication.getUniqueID()
                     note.isFullNoteContentAvailable = true
                     taskDto.notes?.append(note)
+                    
+                    if note.note?.lowercased() == "delete" {
+                        let changeDto = DataChangeDto()
+                        changeDto.objectId = taskDto.id
+                        changeDto.changeType = .delete
+                        changeDto.objectType = .task
+                        changeDto.id = WebApplication.getUniqueID()
+                        self.storage.dataChanges.append(changeDto)
+                    }
                 }
                 
             }
