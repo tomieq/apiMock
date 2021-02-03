@@ -11,6 +11,7 @@ class DataStorage {
     
     var components: [ConfigurationComponentDto] = []
     var systemParameters: [SystemParameterDto] = []
+    var features: [FeatureDto] = []
     var tasks: [TaskDto] = []
     var calendarEvents: [CalendarEventDto] = []
     var messages: [MessageDto] = []
@@ -33,6 +34,7 @@ class DataStorage {
     init() {
         self.initComponents()
         self.initSystemParameters()
+        self.initFeatures()
         self.initOrderTypes()
         self.initTaskTypes()
         self.initDictionaries()
@@ -169,6 +171,21 @@ class DataStorage {
         maxAttachmentHeight.type = "NUMBER_VALUE"
         maxAttachmentHeight.intValue = 3200
         self.systemParameters.append(maxAttachmentHeight)
+    }
+    
+    private func initFeatures() {
+        self.features = []
+        
+        let disableUINotifications = FeatureDto()
+        disableUINotifications.code = "UI_NOTIFICATIONS_DISABLED"
+        disableUINotifications.enabled = false
+        self.features.append(disableUINotifications)
+        
+        let showOrderAttachments = FeatureDto()
+        showOrderAttachments.code = "SHOW_ORDER_ATTACHMENTS_ON_TASK_DETAILS"
+        showOrderAttachments.enabled = false
+        self.features.append(showOrderAttachments)
+        
     }
     
     private func initOrderTypes() {

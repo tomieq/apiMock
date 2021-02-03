@@ -79,11 +79,12 @@ class WebApplication {
             return .noContent
         }
         
+        // MARK: features
         server.GET["/fsm-mobile/configuration/features"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
             let featureListDto = FeatureListDto()
-            featureListDto.list = []
+            featureListDto.list = self.storage.features
             return featureListDto.asValidRsponse(contentType: contentType)
         }
         
