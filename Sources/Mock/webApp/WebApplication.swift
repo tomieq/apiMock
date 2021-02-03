@@ -334,19 +334,47 @@ class WebApplication {
             self.storage.addBusinessDataForToday()
             
             let segments = request.path.split("/")
-            let idString = segments[2]
-            let ids = idString.split(",")
+            let action = segments[2]
             
-            let taskListDto = TaskListDto()
-            taskListDto.list = []
-            
-            ids.compactMap{ Int32($0) }.forEach { id in
-                if let taskDto = (self.storage.tasks.filter{ $0.id == id }.first) {
-                    taskListDto.list?.append(taskDto)
+            switch action {
+            case "isCurrentUserAssignable":
+                let dto = AssignToResourceValidationDto()
+                dto.canAssignToResource = true
+                return dto.asValidRsponse(contentType: contentType)
+            case "availableResources":
+                let listDto = TaskReassignDataListDto()
+                let resourceType = request.queryParams.filter { $0.0 == "resourceType" }.first?.1 ?? ""
+                switch resourceType {
+                case "EMPLOYEE":
+                    listDto.taskReassignDataDtoList = self.storage.users.map { TaskReassignDataDto.make(from: $0) }
+                default:
+                    listDto.taskReassignDataDtoList = (1...7).map { _ in TaskReassignDataDto.makeGroup() }
                 }
+                return listDto.asValidRsponse(contentType: contentType)
+            default:
+                let ids = action.split(",")
+                let taskListDto = TaskListDto()
+                taskListDto.list = []
+                
+                ids.compactMap{ Int32($0) }.forEach { id in
+                    if let taskDto = (self.storage.tasks.filter{ $0.id == id }.first) {
+                        taskListDto.list?.append(taskDto)
+                    }
+                }
+                
+                return taskListDto.asValidRsponse(contentType: contentType)
             }
-            
-            return taskListDto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: create task
+        server.POST["/fsm-mobile/workorders"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            let dto = WorkOrderBasicDataDto()
+            dto.workOrderId = DtoMaker.getUniqueID()
+            dto.workOrderBusinessKey = "WO/\(dto.workOrderId ?? 0)/\(DtoMaker.currentYear())"
+            dto.taskId = DtoMaker.getUniqueID()
+            dto.taskBusinessKey = "T/\(dto.taskId ?? 0)/\(DtoMaker.currentYear())"
+            return dto.asValidRsponse(contentType: contentType)
         }
 
         // MARK: Task's complexes
@@ -366,6 +394,48 @@ class WebApplication {
         // MARK: end task's track record
         server.PUT["/fsm-mobile/tasks/*/endTaskTracking"] = { request in
             return .noContent
+        }
+        
+        // MARK: create task configuration
+        server.GET["/fsm-mobile/configuration/workorder/types/forCreation"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            
+            let taskType = TaskTypeForCreationDto()
+            taskType.typeId = 1
+            
+            let technology = TechnologyForCreationDto()
+            technology.technologyId = 1
+            technology.technologyName = "GPON"
+            technology.taskTypesForCreation = [taskType]
+            
+            let workOrderType = WorkOrderTypeForCreationDto()
+            workOrderType.typeId = 1
+            workOrderType.technologiesForCreation = [technology]
+            
+            let listDto = WorkOrderTypesForCreationListDto()
+            listDto.workOrderTypesForCreation = [workOrderType]
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: create task tab
+        server.GET["/fsm-mobile/workorders/creation/tab"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            
+
+            let section = TaskTabSectionDto()
+            section.sequence = 1
+            section.sectionName = "Attributes"
+            section.tabSectionItems = []
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(1, question: "Is urgent?", type: "INPUT_BOOLEAN"))
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(2, question: "Assign to", type: "CREATE_WORK_ORDER_INPUT_RESOURCE"))
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Impact", type: "INPUT_TASK_IMPACT").setStringValue("TASK"))
+            
+            let tab = TaskTabDto()
+            tab.sequence = 1
+            tab.tabName = "General info"
+            tab.tabSections = [section]
+            tab.type = "STATIC_DATA"
+            return tab.asValidRsponse(contentType: contentType)
         }
 
         // MARK: Create and get task's announcements

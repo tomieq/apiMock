@@ -15,7 +15,7 @@ class TaskBuilder {
         
         let taskDto = TaskDto()
         taskDto.id = id
-        taskDto.bussinesKey = "T/\(id)/\(self.currentYear())"
+        taskDto.bussinesKey = "T/\(id)/\(DtoMaker.currentYear())"
         taskDto.statusId = 1
         taskDto.typeId = 1
         taskDto.workOrderId = 1
@@ -78,7 +78,7 @@ class TaskBuilder {
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(1, question: "Address:", type: "STATIC_DATA").setStringValue(""))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(2, question: "Customer full name:", type: "STATIC_DATA").setStringValue("John Nowak"))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Task ID:", type: "STATIC_DATA").setStringValue(taskDto.bussinesKey))
-        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Order ID:", type: "STATIC_DATA").setStringValue("WO/\(DtoMaker.getUniqueID())/\(self.currentYear())"))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Order ID:", type: "STATIC_DATA").setStringValue("WO/\(DtoMaker.getUniqueID())/\(DtoMaker.currentYear())"))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(5, question: "Technology:", type: "STATIC_DATA").setStringValue("GPON"))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(6, question: "Order type:", type: "STATIC_DATA").setStringValue(storage.orderTypes.filter { $0.id == taskDto.workOrderTypeId }.first?.name ?? ""))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(7, question: "Task type:", type: "STATIC_DATA").setStringValue(storage.taskTypes.filter { $0.id == taskDto.typeId }.first?.name ?? ""))
@@ -129,13 +129,6 @@ class TaskBuilder {
         
         taskDto.additionalTabs = TaskBuilder.makeProcessingTabs()
         return taskDto
-    }
-    
-    static func currentYear() -> String {
-        let date = Date()
-        let format = DateFormatter()
-        format.dateFormat = "yyyy"
-        return format.string(from: date)
     }
     
     static func makeProcessingTabs() -> [AdditionalTabDto] {

@@ -72,6 +72,18 @@ class DataStorage {
         messagesModule.sequence = 3
         self.components.append(messagesModule)
         
+        let ossModule = ConfigurationComponentDto()
+        ossModule.code = .inventoryMock
+        ossModule.type = .module
+        ossModule.sequence = 4
+        self.components.append(ossModule)
+        
+        let newTaskModule = ConfigurationComponentDto()
+        newTaskModule.code = .newTask
+        newTaskModule.type = .module
+        newTaskModule.sequence = 0
+        self.components.append(newTaskModule)
+        
         let absenceModule = ConfigurationComponentDto()
         absenceModule.code = .absence
         absenceModule.type = .module
@@ -664,6 +676,7 @@ class DataStorage {
             let sender = self.users.filter { $0.id == 18 }.first
             
             let message1 = DtoMaker.makeMessageDto(from: sender, to: recipient, msg: "Hi, I have some instructions")
+            message1.createDate = Date().dateAdding(minuteCount: -1)
             self.messages.append(message1)
             let message2 = DtoMaker.makeMessageDto(from: sender, to: recipient, msg: "When you close a task, you will get another. If you want to trigger DELETE-TASK, just add a note to the task with text 'delete'.")
             self.messages.append(message2)

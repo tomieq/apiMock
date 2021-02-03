@@ -36,4 +36,11 @@ class DtoMaker {
         DtoMaker.internalCounter = DtoMaker.internalCounter + 1
         return DtoMaker.internalCounter
     }
+    
+    static func currentYear() -> String {
+        let date = Date()
+        let format = DateFormatter()
+        format.dateFormat = "yyyy"
+        return format.string(from: date)
+    }
 }
