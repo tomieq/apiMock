@@ -22,6 +22,15 @@ class DtoMaker {
         return messageDto
     }
     
+    static func makeDataChangeDto(_ object: DataChangeDto.ObjectType, _ change: DataChangeDto.ChangeType, _ id: Int32?) -> DataChangeDto {
+        let dto = DataChangeDto()
+        dto.changeType = change
+        dto.objectType = object
+        dto.objectId = id
+        dto.id = DtoMaker.getUniqueID()
+        retur dto
+    }
+    
     private static var internalCounter: Int32 = 1000
     static func getUniqueID() -> Int32 {
         DtoMaker.internalCounter = DtoMaker.internalCounter + 1

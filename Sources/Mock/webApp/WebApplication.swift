@@ -445,11 +445,7 @@ class WebApplication {
             if let statusChange = (inputDto?.taskStatusChangeChainDto?.sorted { $0.sequence ?? 0 < $1.sequence ?? 0 }.last) {
                 taskDto.statusId = statusChange.statusId
                  
-                let changeDto = DataChangeDto()
-                changeDto.objectId = taskDto.id
-                changeDto.changeType = .update
-                changeDto.objectType = .task
-                changeDto.id = DtoMaker.getUniqueID()
+                let changeDto = DtoMaker.makeDataChangeDto(.task, .update, taskDto.id)
                 self.storage.dataChanges.append(changeDto)
 
                 self.storage.addBusinessDataForToday()
@@ -523,20 +519,12 @@ class WebApplication {
                     taskDto.notes?.append(note)
                     
                     if note.note?.lowercased() == "delete" {
-                        let taskChange = DataChangeDto()
-                        taskChange.objectId = taskDto.id
-                        taskChange.changeType = .delete
-                        taskChange.objectType = .task
-                        taskChange.id = DtoMaker.getUniqueID()
+                        let taskChange = DtoMaker.makeDataChangeDto(.task, .delete, taskDto.id)
                         self.storage.dataChanges.append(taskChange)
                         self.storage.tasks = self.storage.tasks.filter { $0.id != taskID }
                         
                         if let calendar = (self.storage.calendarEvents.filter { $0.taskId == taskID}.first) {
-                            let calendarChange = DataChangeDto()
-                            calendarChange.objectId = calendar.id
-                            calendarChange.changeType = .delete
-                            calendarChange.objectType = .calendarEvent
-                            calendarChange.id = DtoMaker.getUniqueID()
+                            let calendarChange = DtoMaker.makeDataChangeDto(.calendarEvent, .delete, calendar.id)
                             self.storage.dataChanges.append(calendarChange)
                             self.storage.calendarEvents = self.storage.calendarEvents.filter { $0.id != calendar.id }
                         }
@@ -663,23 +651,10 @@ class WebApplication {
                 answers.append("Why are you so serious?")
                 answers.append("Please explain me that")
                 answers.shuffle()
-                let responseMessageDto = MessageDto()
-                responseMessageDto.id = DtoMaker.getUniqueID()
-                responseMessageDto.recipientId = sender?.id
-                responseMessageDto.recipientDisplayName = sender?.fullName
-                responseMessageDto.createDate = Date()
-                responseMessageDto.senderFullName = recipient.fullName
-                responseMessageDto.senderId = recipient.id
-                responseMessageDto.status = "DELIVERED"
-                responseMessageDto.content = answers.first
-                responseMessageDto.priority = "LOW"
+                let responseMessageDto = DtoMaker.makeMessageDto(from: recipient, to: sender, msg: answers.first)
                 self.storage.messages.append(responseMessageDto)
                 
-                let dataChange = DataChangeDto()
-                dataChange.changeType = .insert
-                dataChange.objectType = .message
-                dataChange.objectId = responseMessageDto.id
-                dataChange.id = DtoMaker.getUniqueID()
+                let dataChange = DtoMaker.makeDataChangeDto(.message, .insert, responseMessageDto.id)
                 self.storage.dataChanges.append(dataChange)
                 return messageDto.asValidRsponse(contentType: contentType)
             }
