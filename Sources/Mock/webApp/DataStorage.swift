@@ -99,6 +99,14 @@ class DataStorage {
         itemChangeStatusButton.type = .button
         itemChangeStatusButton.sequence = 0
         self.components.append(itemChangeStatusButton)
+        
+        let chooseItemButton = ConfigurationComponentDto()
+        chooseItemButton.code = .chooseItemButton
+        chooseItemButton.type = .button
+        chooseItemButton.sequence = 0
+        self.components.append(chooseItemButton)
+        
+        
 
     }
     
@@ -107,7 +115,7 @@ class DataStorage {
         self.systemParameters = []
         
         let syncTime = SystemParameterDto()
-        syncTime.id = WebApplication.getUniqueID()
+        syncTime.id = DtoMaker.getUniqueID()
         syncTime.name = UUID().uuidString
         syncTime.code = "MOBILE_SYNCHRONIZATION_INTERVAL"
         syncTime.type = "NUMBER_VALUE"
@@ -116,7 +124,7 @@ class DataStorage {
         
         let sessionTime = SystemParameterDto()
         sessionTime.name = UUID().uuidString
-        sessionTime.id = WebApplication.getUniqueID()
+        sessionTime.id = DtoMaker.getUniqueID()
         sessionTime.code = "MOBILE_SESSION_TIME_IN_MINUTES"
         sessionTime.type = "NUMBER_VALUE"
         sessionTime.intValue = 60
@@ -124,7 +132,7 @@ class DataStorage {
         
         let calendarBack = SystemParameterDto()
         calendarBack.name = UUID().uuidString
-        calendarBack.id = WebApplication.getUniqueID()
+        calendarBack.id = DtoMaker.getUniqueID()
         calendarBack.code = "NUMBER_OF_DAYS_IN_PAST_FOR_MOBILE_CALENDAR"
         calendarBack.type = "NUMBER_VALUE"
         calendarBack.intValue = 2
@@ -132,7 +140,7 @@ class DataStorage {
 
         let calendarForward = SystemParameterDto()
         calendarForward.name = UUID().uuidString
-        calendarForward.id = WebApplication.getUniqueID()
+        calendarForward.id = DtoMaker.getUniqueID()
         calendarForward.code = "NUMBER_OF_DAYS_IN_FUTURE_FOR_MOBILE_CALENDAR"
         calendarForward.type = "NUMBER_VALUE"
         calendarForward.intValue = 7
@@ -140,7 +148,7 @@ class DataStorage {
         
         let maxAttachmentSize = SystemParameterDto()
         maxAttachmentSize.name = UUID().uuidString
-        maxAttachmentSize.id = WebApplication.getUniqueID()
+        maxAttachmentSize.id = DtoMaker.getUniqueID()
         maxAttachmentSize.code = "MAX_ATTACHMENT_SIZE"
         maxAttachmentSize.type = "NUMBER_VALUE"
         maxAttachmentSize.intValue = 1024 * 1024 * 3
@@ -148,7 +156,7 @@ class DataStorage {
         
         let maxAttachmentWidth = SystemParameterDto()
         maxAttachmentWidth.name = UUID().uuidString
-        maxAttachmentWidth.id = WebApplication.getUniqueID()
+        maxAttachmentWidth.id = DtoMaker.getUniqueID()
         maxAttachmentWidth.code = "MAX_PHOTO_RESOLUTION_WIDTH"
         maxAttachmentWidth.type = "NUMBER_VALUE"
         maxAttachmentWidth.intValue = 4200
@@ -156,7 +164,7 @@ class DataStorage {
         
         let maxAttachmentHeight = SystemParameterDto()
         maxAttachmentHeight.name = UUID().uuidString
-        maxAttachmentHeight.id = WebApplication.getUniqueID()
+        maxAttachmentHeight.id = DtoMaker.getUniqueID()
         maxAttachmentHeight.code = "MAX_PHOTO_RESOLUTION_HEIGHT"
         maxAttachmentHeight.type = "NUMBER_VALUE"
         maxAttachmentHeight.intValue = 3200
@@ -201,28 +209,28 @@ class DataStorage {
         let red = DictionaryDto()
         red.code = "RED"
         red.dictionaryName = "COLORS"
-        red.id = WebApplication.getUniqueID()
+        red.id = DtoMaker.getUniqueID()
         red.entryId = red.id
         red.value = "red"
         
         let blue = DictionaryDto()
         blue.code = "BLUE"
         blue.dictionaryName = "COLORS"
-        blue.id = WebApplication.getUniqueID()
+        blue.id = DtoMaker.getUniqueID()
         blue.entryId = blue.id
         blue.value = "blue"
         
         let green = DictionaryDto()
         green.code = "GREEN"
         green.dictionaryName = "COLORS"
-        green.id = WebApplication.getUniqueID()
+        green.id = DtoMaker.getUniqueID()
         green.entryId = green.id
         green.value = "green"
         
         let lightBlue = DictionaryDto()
         lightBlue.code = "LIGHT_BLUE"
         lightBlue.dictionaryName = "BLUE_COLORS"
-        lightBlue.id = WebApplication.getUniqueID()
+        lightBlue.id = DtoMaker.getUniqueID()
         lightBlue.entryId = lightBlue.id
         lightBlue.value = "light blue"
         lightBlue.parentIds = [blue.entryId!]
@@ -230,7 +238,7 @@ class DataStorage {
         let darkBlue = DictionaryDto()
         darkBlue.code = "DARK_BLUE"
         darkBlue.dictionaryName = "BLUE_COLORS"
-        darkBlue.id = WebApplication.getUniqueID()
+        darkBlue.id = DtoMaker.getUniqueID()
         darkBlue.entryId = darkBlue.id
         darkBlue.value = "dark blue"
         darkBlue.parentIds = [blue.entryId!]
@@ -326,7 +334,7 @@ class DataStorage {
         let closed = StatusDto()
         closed.id = 4
         closed.code = "CLOSED"
-        closed.name = "Close"
+        closed.name = "Closed"
         closed.workRelated = false
         closed.statusFlowType = [.task]
         let cancelled = StatusDto()
@@ -390,25 +398,25 @@ class DataStorage {
         let closedInstallation = StatusHandlerDto()
         closedInstallation.code = "CLOSE"
         closedInstallation.flowId = 1
-        closedInstallation.id = WebApplication.getUniqueID()
+        closedInstallation.id = DtoMaker.getUniqueID()
         closedInstallation.statusId = 4
         
         let onSiteInstallation = StatusHandlerDto()
         onSiteInstallation.code = "ON_SITE"
         onSiteInstallation.flowId = 1
-        onSiteInstallation.id = WebApplication.getUniqueID()
+        onSiteInstallation.id = DtoMaker.getUniqueID()
         onSiteInstallation.statusId = 3
         
         let closedMaintenance = StatusHandlerDto()
         closedMaintenance.code = "CLOSE"
         closedMaintenance.flowId = 1
-        closedMaintenance.id = WebApplication.getUniqueID()
+        closedMaintenance.id = DtoMaker.getUniqueID()
         closedMaintenance.statusId = 4
         
         let onSiteMaintenance = StatusHandlerDto()
         onSiteMaintenance.code = "ON_SITE"
         onSiteMaintenance.flowId = 2
-        onSiteMaintenance.id = WebApplication.getUniqueID()
+        onSiteMaintenance.id = DtoMaker.getUniqueID()
         onSiteMaintenance.statusId = 3
         
         self.statuShandlers = [closedInstallation, onSiteInstallation, closedMaintenance, onSiteMaintenance]
@@ -455,37 +463,37 @@ class DataStorage {
         self.priorities = []
         
         let low = PriorityDto()
-        low.id = WebApplication.getUniqueID()
+        low.id = DtoMaker.getUniqueID()
         low.name = "Low"
         low.value = 0
         self.priorities.append(low)
         
         let medium = PriorityDto()
-        medium.id = WebApplication.getUniqueID()
+        medium.id = DtoMaker.getUniqueID()
         medium.name = "Medium"
         medium.value = 1
         self.priorities.append(medium)
         
         let hight = PriorityDto()
-        hight.id = WebApplication.getUniqueID()
+        hight.id = DtoMaker.getUniqueID()
         hight.name = "Hight"
         hight.value = 2
         self.priorities.append(hight)
         
         let critical = PriorityDto()
-        critical.id = WebApplication.getUniqueID()
+        critical.id = DtoMaker.getUniqueID()
         critical.name = "Critical"
         critical.value = 3
         self.priorities.append(critical)
         
         let bloker = PriorityDto()
-        bloker.id = WebApplication.getUniqueID()
-        bloker.name = "Critical"
+        bloker.id = DtoMaker.getUniqueID()
+        bloker.name = "Bloker"
         bloker.value = 4
         self.priorities.append(bloker)
         
         let disaster = PriorityDto()
-        disaster.id = WebApplication.getUniqueID()
+        disaster.id = DtoMaker.getUniqueID()
         disaster.name = "Disaster"
         disaster.value = 5
         self.priorities.append(disaster)
@@ -585,7 +593,7 @@ class DataStorage {
         switch todayCalendarEvents.count {
         case 0:
             let workingTime = CalendarEventDto()
-            workingTime.id = WebApplication.getUniqueID()
+            workingTime.id = DtoMaker.getUniqueID()
             workingTime.eventTypeId = 1
             workingTime.setRange(from: Date().dateWithTime(hour: 8, minute: 00), to: Date().dateWithTime(hour: 16, minute: 30))
             self.calendarEvents.append(workingTime)
@@ -597,7 +605,7 @@ class DataStorage {
         case ...2:
             let date = todayOpenTasks.sorted { $0.scheduledRealizationTime?.dateFrom ?? Date() < $1.scheduledRealizationTime?.dateFrom ?? Date() }.last?.scheduledRealizationTime?.dateTo ?? Date().dateWithTime(hour: 8, minute: 00)
             for index in 0...(2 - todayOpenTasks.count) {
-                let taskID = WebApplication.getUniqueID()
+                let taskID = DtoMaker.getUniqueID()
                 let taskDto = TaskBuilder.makeTaskDto(id: taskID, storage: self)
                 taskDto.schedule(from: date?.dateAdding(minuteCount: index * 15), to: date?.dateAdding(minuteCount: 15 + index * 15))
                 self.tasks.append(taskDto)
@@ -606,12 +614,12 @@ class DataStorage {
                 taskChange.changeType = .insert
                 taskChange.objectType = .task
                 taskChange.objectId = taskID
-                taskChange.id = WebApplication.getUniqueID()
+                taskChange.id = DtoMaker.getUniqueID()
                 self.dataChanges.append(taskChange)
                 
                 let calendarDto = CalendarEventDto()
                 calendarDto.eventTypeId = 2
-                calendarDto.id = WebApplication.getUniqueID()
+                calendarDto.id = DtoMaker.getUniqueID()
                 calendarDto.taskBusinessKey = taskDto.bussinesKey
                 calendarDto.priorityId = taskDto.priorityId
                 calendarDto.taskId = taskDto.id
@@ -626,7 +634,7 @@ class DataStorage {
                 calendarChange.changeType = .insert
                 calendarChange.objectType = .calendarEvent
                 calendarChange.objectId = calendarDto.id
-                calendarChange.id = WebApplication.getUniqueID()
+                calendarChange.id = DtoMaker.getUniqueID()
                 self.dataChanges.append(calendarChange)
             }
         default:
@@ -637,18 +645,11 @@ class DataStorage {
 
             let recipient = self.users.filter { $0.id == 1 }.first
             let sender = self.users.filter { $0.id == 18 }.first
-
-            let messageDto = MessageDto()
-            messageDto.id = WebApplication.getUniqueID()
-            messageDto.recipientId = recipient?.id
-            messageDto.recipientDisplayName = recipient?.fullName
-            messageDto.createDate = Date()
-            messageDto.senderFullName = sender?.fullName
-            messageDto.senderId = sender?.id
-            messageDto.status = "DELIVERED"
-            messageDto.content = "Please do not be late for work again..."
-            messageDto.priority = "LOW"
-            self.messages.append(messageDto)
+            
+            let message1 = DtoMaker.makeMessageDto(from: sender, to: recipient, msg: "Hi, I have some instructions")
+            self.messages.append(message1)
+            let message2 = DtoMaker.makeMessageDto(from: sender, to: recipient, msg: "When you close a task, you will get another. If you want to trigger DELETE-TASK, just add a note to the task with text 'delete'.")
+            self.messages.append(message2)
         }
     }
 }

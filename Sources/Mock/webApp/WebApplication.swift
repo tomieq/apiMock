@@ -11,7 +11,6 @@ let resourcesPath = FileManager.default.currentDirectoryPath + String.pathSepara
 
 class WebApplication {
 
-    private static var internalCounter: Int32 = 1000
     let storage = DataStorage()
     
     init(_ server: HttpServer) {
@@ -383,7 +382,7 @@ class WebApplication {
                 }
                 if let inputDto = try? JSONDecoder().decode(TaskItemDto.self, from: Data(bodyString.utf8)) {
                 
-                    let taskItemId = WebApplication.getUniqueID()
+                    let taskItemId = DtoMaker.getUniqueID()
                     inputDto.taskItemId = taskItemId
                     inputDto.taskId = taskId
                     self.storage.taskItems.append(inputDto)
@@ -410,7 +409,7 @@ class WebApplication {
             }
             if let inputDto = try? JSONDecoder().decode(ItemDto.self, from: Data(bodyString.utf8)), let announcement = (self.storage.taskItems.filter { $0.taskItemId == announcementId }.first) {
             
-                let itemId = WebApplication.getUniqueID()
+                let itemId = DtoMaker.getUniqueID()
                 inputDto.id = itemId
                 inputDto.statusId = 6
                 inputDto.name = self.storage.itemTypes.filter { $0.id == inputDto.itemTypeId }.first?.typeName ?? "invalid"
@@ -450,7 +449,7 @@ class WebApplication {
                 changeDto.objectId = taskDto.id
                 changeDto.changeType = .update
                 changeDto.objectType = .task
-                changeDto.id = WebApplication.getUniqueID()
+                changeDto.id = DtoMaker.getUniqueID()
                 self.storage.dataChanges.append(changeDto)
 
                 self.storage.addBusinessDataForToday()
@@ -496,7 +495,7 @@ class WebApplication {
                 return .badRequest(nil)
             }
             let dto = AttachmentInfoDto()
-            dto.id = WebApplication.getUniqueID()
+            dto.id = DtoMaker.getUniqueID()
             dto.fileName = fileName
             dto.createDate = Date()
             dto.createUserFullName = self.storage.users.filter { $0.id == 1 }.first?.fullName
@@ -519,7 +518,7 @@ class WebApplication {
             if let inputDto = try? JSONDecoder().decode(TaskNotesDto.self, from: Data(request.bodyString!.utf8)),
                 let taskID = Int32(request.params.first?.value ?? ""), let taskDto = (self.storage.tasks.filter{ $0.id == taskID }.first) {
                 inputDto.notes.forEach { note in
-                    note.externalId = WebApplication.getUniqueID()
+                    note.externalId = DtoMaker.getUniqueID()
                     note.isFullNoteContentAvailable = true
                     taskDto.notes?.append(note)
                     
@@ -528,7 +527,7 @@ class WebApplication {
                         taskChange.objectId = taskDto.id
                         taskChange.changeType = .delete
                         taskChange.objectType = .task
-                        taskChange.id = WebApplication.getUniqueID()
+                        taskChange.id = DtoMaker.getUniqueID()
                         self.storage.dataChanges.append(taskChange)
                         self.storage.tasks = self.storage.tasks.filter { $0.id != taskID }
                         
@@ -537,7 +536,7 @@ class WebApplication {
                             calendarChange.objectId = calendar.id
                             calendarChange.changeType = .delete
                             calendarChange.objectType = .calendarEvent
-                            calendarChange.id = WebApplication.getUniqueID()
+                            calendarChange.id = DtoMaker.getUniqueID()
                             self.storage.dataChanges.append(calendarChange)
                             self.storage.calendarEvents = self.storage.calendarEvents.filter { $0.id != calendar.id }
                         }
@@ -599,7 +598,7 @@ class WebApplication {
         server.POST["/fsm-mobile/calendars/create"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             let dto = CalendarUpdateResultDto()
-            dto.id = WebApplication.getUniqueID()
+            dto.id = DtoMaker.getUniqueID()
             dto.calendarVersion = UUID().uuidString
             return dto.asValidRsponse(contentType: contentType)
         }
@@ -646,7 +645,7 @@ class WebApplication {
                 
                 let sender = self.storage.users.filter{ $0.id == 1 }.first
                 
-                messageDto.id = WebApplication.getUniqueID()
+                messageDto.id = DtoMaker.getUniqueID()
                 messageDto.recipientId = recipient.id
                 messageDto.recipientDisplayName = recipient.fullName
                 messageDto.createDate = Date()
@@ -665,7 +664,7 @@ class WebApplication {
                 answers.append("Please explain me that")
                 answers.shuffle()
                 let responseMessageDto = MessageDto()
-                responseMessageDto.id = WebApplication.getUniqueID()
+                responseMessageDto.id = DtoMaker.getUniqueID()
                 responseMessageDto.recipientId = sender?.id
                 responseMessageDto.recipientDisplayName = sender?.fullName
                 responseMessageDto.createDate = Date()
@@ -680,7 +679,7 @@ class WebApplication {
                 dataChange.changeType = .insert
                 dataChange.objectType = .message
                 dataChange.objectId = responseMessageDto.id
-                dataChange.id = WebApplication.getUniqueID()
+                dataChange.id = DtoMaker.getUniqueID()
                 self.storage.dataChanges.append(dataChange)
                 return messageDto.asValidRsponse(contentType: contentType)
             }
@@ -790,10 +789,5 @@ class WebApplication {
             Logger.info("Incoming request", "\(request.method) \(request.path)")
             return nil
         }
-    }
-    
-    static func getUniqueID() -> Int32 {
-        WebApplication.internalCounter = WebApplication.internalCounter + 1
-        return WebApplication.internalCounter
     }
 }

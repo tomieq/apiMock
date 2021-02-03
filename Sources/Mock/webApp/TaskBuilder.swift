@@ -58,7 +58,7 @@ class TaskBuilder {
         attachmentTab.tabSections = [attachmentSection]
         
         let pictureAttachment = AttachmentInfoDto()
-        pictureAttachment.id = WebApplication.getUniqueID()
+        pictureAttachment.id = DtoMaker.getUniqueID()
         pictureAttachment.canDelete = true
         pictureAttachment.fileName = "patchpanel_connections.jpg"
         pictureAttachment.createDate = Date()
@@ -78,7 +78,7 @@ class TaskBuilder {
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(1, question: "Address:", type: "STATIC_DATA").setStringValue(""))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(2, question: "Customer full name:", type: "STATIC_DATA").setStringValue("John Nowak"))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Task ID:", type: "STATIC_DATA").setStringValue(taskDto.bussinesKey))
-        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Order ID:", type: "STATIC_DATA").setStringValue("WO/\(WebApplication.getUniqueID())/\(self.currentYear())"))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Order ID:", type: "STATIC_DATA").setStringValue("WO/\(DtoMaker.getUniqueID())/\(self.currentYear())"))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(5, question: "Technology:", type: "STATIC_DATA").setStringValue("GPON"))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(6, question: "Order type:", type: "STATIC_DATA").setStringValue(storage.orderTypes.filter { $0.id == taskDto.workOrderTypeId }.first?.name ?? ""))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(7, question: "Task type:", type: "STATIC_DATA").setStringValue(storage.taskTypes.filter { $0.id == taskDto.typeId }.first?.name ?? ""))
