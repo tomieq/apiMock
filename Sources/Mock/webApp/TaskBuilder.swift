@@ -24,7 +24,7 @@ class TaskBuilder {
         taskDto.dictionaryTimestamp = Date()
         taskDto.isOrphanable = false
         taskDto.priorityId = priorityIDs.first
-        taskDto.slaDate = Date()
+        taskDto.slaDate = Date().dateAdding(minuteCount: 120)
         taskDto.notes = []
         
         let location = LocationDto()
@@ -72,12 +72,22 @@ class TaskBuilder {
         
         let basicSection = TaskTabSectionDto()
         basicSection.sequence = 1
-        basicSection.sectionName = "Basic"
+        basicSection.sectionName = "Basic data"
         basicSection.tabSectionItems = []
         
-        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Processing signature", type: "STATIC_DATA").setStringValue(UUID().uuidString))
-        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Create date", type: "STATIC_DATA").setDateValue(Date()))
-        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(5, question: "Status", type: "STATUS"))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(1, question: "Address:", type: "STATIC_DATA").setStringValue(""))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(2, question: "Customer full name:", type: "STATIC_DATA").setStringValue("John Nowak"))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Task ID:", type: "STATIC_DATA").setStringValue(taskDto.bussinesKey))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Order ID:", type: "STATIC_DATA").setStringValue("WO/\(WebApplication.getUniqueID())/\(self.currentYear())"))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(5, question: "Technology:", type: "STATIC_DATA").setStringValue("GPON"))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(6, question: "Order type:", type: "STATIC_DATA").setStringValue(storage.orderTypes.filter { $0.id == taskDto.workOrderTypeId }.first?.name ?? ""))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(7, question: "Task type:", type: "STATIC_DATA").setStringValue(storage.taskTypes.filter { $0.id == taskDto.typeId }.first?.name ?? ""))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(8, question: "Priority:", type: "STATIC_DATA").setStringValue(storage.priorities.filter { $0.id == taskDto.priorityId }.first?.name ?? ""))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(9, question: "SLA:", type: "STATIC_DATA").setDateValue(taskDto.slaDate))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(10, question: "Status", type: "STATUS"))
+        
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(11, question: "Assigned to:", type: "STATIC_DATA").setStringValue(storage.users.filter { $0.id == 1 }.first?.fullName ?? ""))
+        basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(12, question: "Create date:", type: "STATIC_DATA").setDateValue(Date()))
 
 
         let generalTab = TaskTabDto()
@@ -175,7 +185,7 @@ class TaskBuilder {
 }
 
 extension TaskTabSectionItemDto {
-    func setStringValue(_ text: String) -> TaskTabSectionItemDto {
+    func setStringValue(_ text: String?) -> TaskTabSectionItemDto {
         
         let value = ItemValueDto()
         value.stringValue = text
@@ -184,7 +194,7 @@ extension TaskTabSectionItemDto {
         return self
     }
 
-    func setDateValue(_ date: Date) -> TaskTabSectionItemDto {
+    func setDateValue(_ date: Date?) -> TaskTabSectionItemDto {
         
         let value = ItemValueDto()
         value.dateValue = date
