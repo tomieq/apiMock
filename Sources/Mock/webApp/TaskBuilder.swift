@@ -89,32 +89,44 @@ class TaskBuilder {
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(11, question: "Assigned to:", type: "STATIC_DATA").setStringValue(storage.users.filter { $0.id == 1 }.first?.fullName ?? ""))
         basicSection.tabSectionItems?.append(TaskBuilder.makeFormRow(12, question: "Create date:", type: "STATIC_DATA").setDateValue(Date()))
 
+        taskDto.tabs = []
 
         let generalTab = TaskTabDto()
         generalTab.sequence = 1
         generalTab.tabName = "General info"
         generalTab.tabSections = [basicSection]
         generalTab.type = "STATIC_DATA"
-        
-        let attachmentsTab = TaskTabDto()
-        attachmentsTab.sequence = 4
-        attachmentsTab.tabName = "Attachments"
-        attachmentsTab.tabSections = []
-        attachmentsTab.type = "ATTACHMENTS"
-        
-        let notesTab = TaskTabDto()
-        notesTab.sequence = 5
-        notesTab.tabName = "Notes"
-        notesTab.tabSections = []
-        notesTab.type = "NOTES"
+        taskDto.tabs?.append(generalTab)
         
         let equipmentsTab = TaskTabDto()
         equipmentsTab.sequence = 2
         equipmentsTab.tabName = "Equipments"
         equipmentsTab.tabSections = []
         equipmentsTab.type = "SERVICES_AND_EQUIPMENT"
+        taskDto.tabs?.append(equipmentsTab)
         
-        taskDto.tabs = [generalTab, attachmentsTab, notesTab, equipmentsTab]
+        let attachmentsTab = TaskTabDto()
+        attachmentsTab.sequence = 4
+        attachmentsTab.tabName = "Attachments"
+        attachmentsTab.tabSections = []
+        attachmentsTab.type = "ATTACHMENTS"
+        taskDto.tabs?.append(attachmentsTab)
+        
+        let notesTab = TaskTabDto()
+        notesTab.sequence = 5
+        notesTab.tabName = "Notes"
+        notesTab.tabSections = []
+        notesTab.type = "NOTES"
+        taskDto.tabs?.append(notesTab)
+        
+        let trackRecordTab = TaskTabDto()
+        trackRecordTab.sequence = 6
+        trackRecordTab.tabName = "Track record"
+        trackRecordTab.tabSections = []
+        trackRecordTab.type = "TASK_TRACK_RECORD"
+        taskDto.tabs?.append(trackRecordTab)
+        
+        
         taskDto.additionalTabs = TaskBuilder.makeProcessingTabs()
         return taskDto
     }

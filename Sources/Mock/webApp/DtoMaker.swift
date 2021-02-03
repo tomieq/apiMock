@@ -28,7 +28,7 @@ class DtoMaker {
         dto.objectType = object
         dto.objectId = id
         dto.id = DtoMaker.getUniqueID()
-        retur dto
+        return dto
     }
     
     private static var internalCounter: Int32 = 1000

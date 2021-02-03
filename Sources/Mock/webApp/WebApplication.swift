@@ -356,6 +356,16 @@ class WebApplication {
             listDto.list = []
             return listDto.asValidRsponse(contentType: contentType)
         }
+        
+        // MARK: start task's track record
+        server.PUT["/fsm-mobile/tasks/*/startTaskTracking"] = { request in
+            return .noContent
+        }
+        
+        // MARK: end task's track record
+        server.PUT["/fsm-mobile/tasks/*/endTaskTracking"] = { request in
+            return .noContent
+        }
 
         // MARK: Create and get task's announcements
         server["/fsm-mobile/tasks/:id/task-items"] = { request in
@@ -651,7 +661,7 @@ class WebApplication {
                 answers.append("Why are you so serious?")
                 answers.append("Please explain me that")
                 answers.shuffle()
-                let responseMessageDto = DtoMaker.makeMessageDto(from: recipient, to: sender, msg: answers.first)
+                let responseMessageDto = DtoMaker.makeMessageDto(from: recipient, to: sender, msg: answers.first ?? "")
                 self.storage.messages.append(responseMessageDto)
                 
                 let dataChange = DtoMaker.makeDataChangeDto(.message, .insert, responseMessageDto.id)
@@ -717,7 +727,7 @@ class WebApplication {
                    responseHeader["Content-Length"] = String(fileSize)
                }
 
-               return .raw(204, "OK", responseHeader, { writer in
+               return .raw(200, "OK", responseHeader, { writer in
                    try writer.write(file)
                    file.close()
                })
