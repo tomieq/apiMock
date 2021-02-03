@@ -149,7 +149,7 @@ class WebApplication {
             let contentType = request.headers["accept"] ?? "application/json"
             
             let listDto = PriorityListDto()
-            listDto.list = []
+            listDto.list = self.storage.priorities
             return listDto.asValidRsponse(contentType: contentType)
         }
         

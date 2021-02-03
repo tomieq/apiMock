@@ -8,7 +8,11 @@
 import Foundation
 
 class TaskBuilder {
-    static func makeTaskDto(id: Int32) -> TaskDto {
+    static func makeTaskDto(id: Int32, storage: DataStorage) -> TaskDto {
+        
+        var priorityIDs = storage.priorities.compactMap { $0.id }
+        priorityIDs.shuffle()
+        
         let taskDto = TaskDto()
         taskDto.id = id
         taskDto.bussinesKey = "T/\(id)/\(self.currentYear())"
@@ -19,7 +23,7 @@ class TaskBuilder {
         taskDto.createDate = Date()
         taskDto.dictionaryTimestamp = Date()
         taskDto.isOrphanable = false
-        taskDto.priorityId = 1
+        taskDto.priorityId = priorityIDs.first
         taskDto.slaDate = Date()
         taskDto.notes = []
         

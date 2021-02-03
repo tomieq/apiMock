@@ -27,6 +27,7 @@ class DataStorage {
     var statuShandlers: [StatusHandlerDto] = []
     var calendarEventTypes: [CalendarEventTypeDto] = []
     var taskFlags: [TaskFlagDto] = []
+    var priorities: [PriorityDto] = []
     var users: [UserDto] = []
     
     init() {
@@ -43,6 +44,7 @@ class DataStorage {
         self.initStatusHandlers()
         self.initCalendarEventTypes()
         self.initTaskFlags()
+        self.initPriorities()
         self.initUsers()
     }
     
@@ -141,7 +143,7 @@ class DataStorage {
         maxAttachmentSize.id = WebApplication.getUniqueID()
         maxAttachmentSize.code = "MAX_ATTACHMENT_SIZE"
         maxAttachmentSize.type = "NUMBER_VALUE"
-        maxAttachmentSize.intValue = 1024 * 1024 * 2
+        maxAttachmentSize.intValue = 1024 * 1024 * 3
         self.systemParameters.append(maxAttachmentSize)
         
         let maxAttachmentWidth = SystemParameterDto()
@@ -448,6 +450,48 @@ class DataStorage {
         self.taskFlags = [flagInRisk, flagSLAExceeded]
     }
     
+    private func initPriorities() {
+        
+        self.priorities = []
+        
+        let low = PriorityDto()
+        low.id = WebApplication.getUniqueID()
+        low.name = "Low"
+        low.value = 0
+        self.priorities.append(low)
+        
+        let medium = PriorityDto()
+        medium.id = WebApplication.getUniqueID()
+        medium.name = "Medium"
+        medium.value = 1
+        self.priorities.append(medium)
+        
+        let hight = PriorityDto()
+        hight.id = WebApplication.getUniqueID()
+        hight.name = "Hight"
+        hight.value = 2
+        self.priorities.append(hight)
+        
+        let critical = PriorityDto()
+        critical.id = WebApplication.getUniqueID()
+        critical.name = "Critical"
+        critical.value = 3
+        self.priorities.append(critical)
+        
+        let bloker = PriorityDto()
+        bloker.id = WebApplication.getUniqueID()
+        bloker.name = "Critical"
+        bloker.value = 4
+        self.priorities.append(bloker)
+        
+        let disaster = PriorityDto()
+        disaster.id = WebApplication.getUniqueID()
+        disaster.name = "Disaster"
+        disaster.value = 5
+        self.priorities.append(disaster)
+        
+    }
+    
     private func initUsers() {
 
         let user1 = UserDto()
@@ -554,7 +598,7 @@ class DataStorage {
             let date = todayOpenTasks.sorted { $0.scheduledRealizationTime?.dateFrom ?? Date() < $1.scheduledRealizationTime?.dateFrom ?? Date() }.last?.scheduledRealizationTime?.dateTo ?? Date().dateWithTime(hour: 8, minute: 00)
             for index in 0...(2 - todayOpenTasks.count) {
                 let taskID = WebApplication.getUniqueID()
-                let taskDto = TaskBuilder.makeTaskDto(id: taskID)
+                let taskDto = TaskBuilder.makeTaskDto(id: taskID, storage: self)
                 taskDto.schedule(from: date?.dateAdding(minuteCount: index * 15), to: date?.dateAdding(minuteCount: 15 + index * 15))
                 self.tasks.append(taskDto)
                 
