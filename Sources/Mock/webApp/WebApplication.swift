@@ -366,6 +366,25 @@ class WebApplication {
             }
         }
         
+        // MARK: transfer requests
+        server.GET["/fsm-mobile/transfer-requests/*"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+
+            self.storage.addBusinessDataForToday()
+            
+            let segments = request.path.split("/")
+            let action = segments[2]
+            let ids = action.split(",")
+            let listDto = TransferRequestListDto()
+            listDto.transferRequestDtos = []
+            
+            ids.compactMap{ Int32($0) }.forEach { id in
+               
+            }
+            
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
         // MARK: create task
         server.POST["/fsm-mobile/workorders"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"

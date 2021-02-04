@@ -126,6 +126,13 @@ class TaskBuilder {
         trackRecordTab.type = "TASK_TRACK_RECORD"
         taskDto.tabs?.append(trackRecordTab)
         
+        let transferRequestTab = TaskTabDto()
+        transferRequestTab.sequence = 7
+        transferRequestTab.tabName = "Transfer requests"
+        transferRequestTab.tabSections = []
+        transferRequestTab.type = "TRANSFER_REQUESTS"
+        taskDto.tabs?.append(transferRequestTab)
+        taskDto.relatedTransferRequests = [1,100]
         
         taskDto.additionalTabs = TaskBuilder.makeProcessingTabs()
         return taskDto
