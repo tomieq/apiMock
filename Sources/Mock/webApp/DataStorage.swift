@@ -706,6 +706,7 @@ class DataStorage {
             self.calendarEvents = self.calendarEvents.filter { $0.timeRange?.dateFrom ?? Date() > deleteBorderDate }
             self.tasks = self.tasks.filter { $0.scheduledRealizationTime?.dateFrom ?? Date() > deleteBorderDate }
             self.messages = self.messages.filter { $0.createDate ?? Date() > deleteBorderDate }
+            self.transfers = self.transfers.filter { $0.transferRange?.dateFrom ?? Date() > deleteBorderDate }
         }
         
         let todayCalendarEvents = self.calendarEvents.filter { $0.timeRange?.dateFrom ?? Date() > Date.startOfDay() && $0.timeRange?.dateFrom ?? Date() < Date.endOfDay() }
