@@ -113,6 +113,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: system parameters
         server.GET["/fsm-mobile/configuration/systemparameters"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -121,6 +122,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: dictionaries
         server.GET["/fsm-mobile/dictionaries"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -129,6 +131,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: note templates
         server.GET["/fsm-mobile/note/templates"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -137,6 +140,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: status handlers
         server.GET["/fsm-mobile/configuration/statushandlers"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -145,6 +149,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: priorities
         server.GET["/fsm-mobile/configuration/priorities"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -153,7 +158,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: Item types
+        // MARK: item types
         server.GET["/fsm-mobile/configuration/item/types"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -162,7 +167,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: Item type classes
+        // MARK: item type classes
         server.GET["/fsm-mobile/configuration/item/types/class"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -172,7 +177,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: Item type level
+        // MARK: item type level
         server.GET["/fsm-mobile/configuration/item/types/level"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -189,12 +194,33 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        server.GET["/fsm-mobile/items/my"] = { request in
+        // MARK: my warehouse's items and by id
+        server.GET["/fsm-mobile/items/*"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let listDto = ItemListDto()
-            listDto.items = []
-            return listDto.asValidRsponse(contentType: contentType)
+            self.storage.addBusinessDataForToday()
+            let segments = request.path.split("/")
+            let action = segments[2]
+            
+            switch action {
+            case "my":
+                let listDto = ItemListDto()
+                listDto.items = self.storage.warehouseItems
+                self.storage.dataChanges = self.storage.dataChanges.filter { $0.objectType != .item }
+                return listDto.asValidRsponse(contentType: contentType)
+            default:
+                let ids = action.split(",")
+                let listDto = ItemListDto()
+                listDto.items = []
+                
+                ids.compactMap{ Int32($0) }.forEach { id in
+                    if let itemDto = (self.storage.warehouseItems.filter{ $0.id == id }.first) {
+                        listDto.items?.append(itemDto)
+                    }
+                }
+                return listDto.asValidRsponse(contentType: contentType)
+            }
+            
         }
         
         server.GET["/fsm-mobile/audits/filter"] = { request in
@@ -224,7 +250,7 @@ class WebApplication {
             return dto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: Statuses
+        // MARK: statuses
         server.GET["/fsm-mobile/configuration/statuses"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -258,7 +284,7 @@ class WebApplication {
             return .noContent
         }
         
-        // MARK: Configuration components
+        // MARK: configuration components
         server.GET["/fsm-mobile/configuration/components"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -268,7 +294,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: Task flags
+        // MARK: task flags
         server.GET["/fsm-mobile/configuration/task/flags"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -277,7 +303,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: Task types
+        // MARK: task types
         server.GET["/fsm-mobile/configuration/task/types"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -286,7 +312,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: Task ids
+        // MARK: task ids
         server.GET["/fsm-mobile/tasks/my/ids"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -299,7 +325,7 @@ class WebApplication {
             return dto.asValidRsponse(contentType: contentType)
         }
 
-        // MARK: Item status flow
+        // MARK: item status flow
         server.GET["/fsm-mobile/configuration/item/status/flows/*"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -319,7 +345,7 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
 
-        // MARK: Task status flow
+        // MARK: task status flow
         server.GET["/fsm-mobile/configuration/task/status/flows/:ids"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -327,7 +353,7 @@ class WebApplication {
             listDto.list = self.storage.statusFlow
             return listDto.asValidRsponse(contentType: contentType)
         }
-        // MARK: Tasks
+        // MARK: tasks
         server.GET["/fsm-mobile/tasks/*"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
 
@@ -396,7 +422,7 @@ class WebApplication {
             return dto.asValidRsponse(contentType: contentType)
         }
 
-        // MARK: Task's complexes
+        // MARK: task's complexes
         server.GET["/fsm-mobile/tasks/:id/complexes"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -472,7 +498,7 @@ class WebApplication {
             return tab.asValidRsponse(contentType: contentType)
         }
 
-        // MARK: Create and get task's announcements
+        // MARK: create and get task's announcements
         server["/fsm-mobile/tasks/:id/task-items"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -513,7 +539,7 @@ class WebApplication {
             }
             
         }
-        // MARK: Add item to announcement
+        // MARK: add item to announcement
         server.POST["/fsm-mobile/tasks/*/task-items/:announcementId/item"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
         
@@ -524,26 +550,31 @@ class WebApplication {
             }
             if let inputDto = try? JSONDecoder().decode(ItemDto.self, from: Data(bodyString.utf8)), let announcement = (self.storage.taskItems.filter { $0.taskItemId == announcementId }.first) {
             
-                let itemId = DtoMaker.getUniqueID()
-                inputDto.id = itemId
-                inputDto.statusId = 6
-                inputDto.name = self.storage.itemTypes.filter { $0.id == inputDto.itemTypeId }.first?.typeName ?? "invalid"
-                announcement.item = inputDto
-                
+                if let existingItem = (self.storage.warehouseItems.filter { $0.id == inputDto.id }.first) {
+                    self.storage.warehouseItems = self.storage.warehouseItems.filter { $0.id != inputDto.id }
+                    self.storage.dataChanges.append(DtoMaker.makeDataChangeDto(.item, .delete, existingItem.id))
+                    announcement.item = existingItem
+                } else {
+                    let itemId = DtoMaker.getUniqueID()
+                    inputDto.id = itemId
+                    inputDto.statusId = 6
+                    inputDto.name = self.storage.itemTypes.filter { $0.id == inputDto.itemTypeId }.first?.typeName ?? "invalid"
+                    announcement.item = inputDto
+                }
                 return announcement.asValidRsponse(contentType: contentType)
             }
             Logger.error("Invalid input body", bodyString)
             return .badRequest(nil)
         }
         
-        // MARK: Delete task item
-        server.DELETE["/fsm-mobile/tasks/1/task-items/:id"] = { request in
+        // MARK: delete task item
+        server.DELETE["/fsm-mobile/tasks/*/task-items/:id"] = { request in
             let taksItemId = Int32(request.params[":id"] ?? "")
             self.storage.taskItems = self.storage.taskItems.filter { $0.taskItemId != taksItemId }
             return .noContent
         }
         
-        // MARK: Change task status
+        // MARK: change task status
         server.PUT["/fsm-mobile/tasks/:id/status"] = { request in
 
             guard let id = Int32(request.params[":id"] ?? ""), let taskDto = (self.storage.tasks.filter { $0.id == id }.first) else {
@@ -571,7 +602,7 @@ class WebApplication {
              
          }
         
-        // MARK: Edit attachment's comment
+        // MARK: edit attachment's comment
         server.POST["/fsm-mobile/attachments/editComment"] = { request in
             
             if let inputDto = try? JSONDecoder().decode(AttachmentCommentDto.self, from: Data(request.bodyString!.utf8)) {
@@ -586,7 +617,7 @@ class WebApplication {
             return .noContent
         }
         
-        // MARK: Detele attachment from task
+        // MARK: detele attachment from task
         server.DELETE["/fsm-mobile/attachments/:attachmentId/delete"] = { request in
             let attachmentId = Int32(request.params[":attachmentId"] ?? "")
             for task in self.storage.tasks {
@@ -618,12 +649,12 @@ class WebApplication {
             return dto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: Update attachment's properties
+        // MARK: update attachment's properties
         server.PUT["/fsm-mobile/attachments/:attachmentID/properties"] = { request in
             return .noContent
         }
         
-        // MARK: Add note to task
+        // MARK: add note to task
         server.POST["/fsm-mobile/tasks/:taskID/notes"] = { request in
             
             if let inputDto = try? JSONDecoder().decode(TaskNotesDto.self, from: Data(request.bodyString!.utf8)),

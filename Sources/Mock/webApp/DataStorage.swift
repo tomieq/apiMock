@@ -15,6 +15,7 @@ class DataStorage {
     var tasks: [TaskDto] = []
     var calendarEvents: [CalendarEventDto] = []
     var messages: [MessageDto] = []
+    var warehouseItems: [ItemDto] = []
     var taskItems: [TaskItemDto] = []
     var dataChanges: [DataChangeDto] = []
     var orderTypes: [WorkOrderTypeDto] = []
@@ -48,6 +49,7 @@ class DataStorage {
         self.initTaskFlags()
         self.initPriorities()
         self.initUsers()
+        self.initWareHouseItems()
     }
     
     private func initComponents() {
@@ -77,6 +79,12 @@ class DataStorage {
         ossModule.type = .module
         ossModule.sequence = 4
         self.components.append(ossModule)
+        
+        let warehouseModule = ConfigurationComponentDto()
+        warehouseModule.code = .warehouse
+        warehouseModule.type = .module
+        warehouseModule.sequence = 5
+        self.components.append(warehouseModule)
         
         let newTaskModule = ConfigurationComponentDto()
         newTaskModule.code = .newTask
@@ -287,6 +295,18 @@ class DataStorage {
         stb.typeName = "STB"
         stb.itemAttributes = []
         stb.itemProposalAttributes = []
+        
+        let macNumber = ItemTypeAttributeDto()
+        macNumber.barcodeScannable = true
+        macNumber.code = "MAC"
+        macNumber.id = DtoMaker.getUniqueID()
+        macNumber.name = "MAC"
+        macNumber.required = true
+        macNumber.sequence = 1
+        macNumber.showOnList = true
+        macNumber.type = "STRING"
+        
+        stb.itemAttributes?.append(macNumber)
         
         let cable = ItemTypeDto()
         cable.id = 2
@@ -624,6 +644,12 @@ class DataStorage {
         self.users = [user1, user5, user9, user18, user19, user25]
     }
     
+    private func initWareHouseItems() {
+        self.warehouseItems = []
+        
+        
+    }
+    
     func addBusinessDataForToday() {
         
         // delete data older than 5 days
@@ -698,6 +724,16 @@ class DataStorage {
             self.messages.append(message1)
             let message2 = DtoMaker.makeMessageDto(from: sender, to: recipient, msg: "When you close a task, you will get another. If you want to trigger DELETE-TASK, just add a note to the task with text 'delete'.")
             self.messages.append(message2)
+        }
+        
+        let warehouseItemAmount = 3
+        if self.warehouseItems.count < warehouseItemAmount {
+            (1...(warehouseItemAmount-self.warehouseItems.count)).forEach { _ in
+                if let itemDto = DtoMaker.makeItem(storage: self) {
+                    self.warehouseItems.append(itemDto)
+                    self.dataChanges.append(DtoMaker.makeDataChangeDto(.item, .insert, itemDto.id))
+                }
+            }
         }
     }
 }
