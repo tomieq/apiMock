@@ -190,14 +190,24 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/transfer/types"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             let listDto = TransferTypeListDto()
-            listDto.transferTypes = []
+            
+            let type = TransferTypeDto()
+            type.code = "NORMAL"
+            type.customProperties = []
+            type.flowId = 1
+            type.id = 1
+            type.name = "Normal"
+            
+            listDto.transferTypes = [type]
             return listDto.asValidRsponse(contentType: contentType)
         }
         
-        // MARK: transfers' ids
-        server.GET["/fsm-mobile/transfers/my/ids"] = { request in
+        // MARK: transfer status flow
+        server.GET["/fsm-mobile/configuration/transfer/status/flows/:ids"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
-            return .noContent
+            let listDto = StatusChangeConfigurationListDto()
+            listDto.list = self.storage.transferStatusFlow
+            return listDto.asValidRsponse(contentType: contentType)
         }
         
         // MARK: documents
@@ -243,8 +253,80 @@ class WebApplication {
             let contentType = request.headers["accept"] ?? "application/json"
             
             let listDto = WarehouseListDto()
-            listDto.warehouseList = self.storage.warehouses
+            listDto.warehouseList = self.storage.warehouses.filter{ $0.id != 1 }
             return listDto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: transfers' ids
+        server.GET["/fsm-mobile/transfers/my/ids"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            let listDto = TransfersIdListDto()
+            listDto.ids = self.storage.transfers.compactMap { $0.id }
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        server.GET["/fsm-mobile/transfers/:ids"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            let listDto = TransferListDto()
+            listDto.transferDtos = []
+            
+            let ids = request.params[":ids"]?.split(",")
+            ids?.compactMap{ Int32($0) }.forEach { id in
+                if let transferDto = (self.storage.transfers.filter{ $0.id == id }.first) {
+                    listDto.transferDtos?.append(transferDto)
+                }
+            }
+        
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: create transfer
+        server.POST["/fsm-mobile/transfers/create"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            if let inputDto = try? JSONDecoder().decode(TransferItemListDto.self, from: Data(request.bodyString!.utf8)) {
+                
+
+                let listDto = TransferCreateDetailsListDto()
+                listDto.transferCreateDetailsDtos = []
+                inputDto.transferItems?.forEach { transferItem in
+                    if let item = (self.storage.warehouseItems.filter { $0.id == transferItem.itemId }.first),
+                        let destinationWarehouse = (self.storage.warehouses.filter{ $0.id == transferItem.destinationWarehouseId }.first),
+                        let me = (self.storage.users.filter{ $0.id == 1 }.first),
+                        let sourceWarehouse = (self.storage.warehouses.filter { $0.name == me.fullName }.first) {
+                        
+                        let transfer = TransferDto()
+                        transfer.createUser = me
+                        transfer.destinationWarehouse = destinationWarehouse
+                        transfer.id = DtoMaker.getUniqueID()
+                        transfer.bussinesKey = "TR/\(transfer.id ?? 0)/\(DtoMaker.currentYear())"
+                        transfer.item = item
+                        transfer.quantity = transferItem.quantity ?? 1.0
+                        transfer.sourceWarehouse = sourceWarehouse
+                        transfer.transitions = []
+                        transfer.statusId = 8
+                        transfer.typeId = 1
+                        transfer.transferRange = TimeRangeDto().set(from: Date(), to: Date().dateAdding(dayCount: 2))
+                        
+                        
+                        self.storage.transfers.append(transfer)
+                        self.storage.warehouseItems = self.storage.warehouseItems.filter { $0.id != item.id }
+                        self.storage.dataChanges.append(DtoMaker.makeDataChangeDto(.transfer, .insert, transfer.id))
+                        self.storage.dataChanges.append(DtoMaker.makeDataChangeDto(.item, .delete, item.id))
+                        
+                        let transferItem = TransferItemDto()
+                        transferItem.destinationWarehouseId = destinationWarehouse.id
+                        transferItem.itemId = item.id
+                        transferItem.quantity = transfer.quantity
+                        let detailsDto = TransferCreateDetailsDto()
+                        detailsDto.transferId = transfer.id
+                        detailsDto.status = .success
+                        detailsDto.transferItemDto = transferItem
+                        listDto.transferCreateDetailsDtos?.append(detailsDto)
+                    }
+                    
+                }
+                return listDto.asValidRsponse(contentType: contentType)
+            }
+            return .noContent
         }
         
         server.GET["/fsm-mobile/audits/filter"] = { request in
@@ -374,7 +456,7 @@ class WebApplication {
             let contentType = request.headers["accept"] ?? "application/json"
             
             let listDto = StatusChangeConfigurationListDto()
-            listDto.list = self.storage.statusFlow
+            listDto.list = self.storage.taskStatusFlow
             return listDto.asValidRsponse(contentType: contentType)
         }
         // MARK: tasks

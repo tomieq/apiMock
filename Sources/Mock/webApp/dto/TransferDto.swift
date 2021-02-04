@@ -7,6 +7,10 @@
 
 import Foundation
 
+class TransfersIdListDto: Codable {
+    var ids: [Int32]?
+}
+
 class TransferListDto: Codable {
     var transferDtos: [TransferDto]?
 }

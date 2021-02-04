@@ -18,6 +18,8 @@ class DataStorage {
     var warehouseItems: [ItemDto] = []
     var taskItems: [TaskItemDto] = []
     var dataChanges: [DataChangeDto] = []
+    var transfers: [TransferDto] = []
+    
     var orderTypes: [WorkOrderTypeDto] = []
     var taskTypes: [TaskTypeDto] = []
     var dictionaries: [DictionaryDto] = []
@@ -25,7 +27,8 @@ class DataStorage {
     var itemClasses: [ItemTypeClassDto] = []
     var itemLevels: [ItemTypeLevelDto] = []
     var statuses: [StatusDto] = []
-    var statusFlow: [StatusChangeConfigurationDto] = []
+    var taskStatusFlow: [StatusChangeConfigurationDto] = []
+    var transferStatusFlow: [StatusChangeConfigurationDto] = []
     var statuShandlers: [StatusHandlerDto] = []
     var calendarEventTypes: [CalendarEventTypeDto] = []
     var taskFlags: [TaskFlagDto] = []
@@ -44,7 +47,8 @@ class DataStorage {
         self.initItemClasses()
         self.initItemLevels()
         self.initStatuses()
-        self.initStatusFlow()
+        self.initTaskStatusFlow()
+        self.initTransferStatusFlow()
         self.initStatusHandlers()
         self.initCalendarEventTypes()
         self.initTaskFlags()
@@ -431,10 +435,24 @@ class DataStorage {
         installed.workRelated = false
         installed.statusFlowType = [.equipment]
         
-        self.statuses = [assigned, enRoute, inProgress, closed, cancelled, inBox, installed]
+        
+        let new = StatusDto()
+        new.id = 7
+        new.code = "NEW"
+        new.name = "New"
+        new.workRelated = false
+        new.statusFlowType = [.itemTransfer]
+        let accepted = StatusDto()
+        accepted.id = 8
+        accepted.code = "ACCEPTED"
+        accepted.name = "Accepted"
+        accepted.workRelated = false
+        accepted.statusFlowType = [.itemTransfer]
+        
+        self.statuses = [assigned, enRoute, inProgress, closed, cancelled, inBox, installed, new, accepted]
     }
     
-    private func initStatusFlow() {
+    private func initTaskStatusFlow() {
         let assigned2EnRoute = StatusTransitionDto()
         assigned2EnRoute.firstStatusId = 1
         assigned2EnRoute.nextStatusId = 2
@@ -464,7 +482,22 @@ class DataStorage {
         gponCheckFlow.objectTypeId = 2
         gponCheckFlow.statusFlowList = [assigned2EnRoute, enRoute2InProgress, inProgress2Closed, inProgress2Cancelled]
         
-        self.statusFlow = [installationFlow, gponCheckFlow]
+        self.taskStatusFlow = [installationFlow, gponCheckFlow]
+    }
+    
+    private func initTransferStatusFlow() {
+        let new2EnAccepted = StatusTransitionDto()
+        new2EnAccepted.firstStatusId = 7
+        new2EnAccepted.nextStatusId = 8
+        new2EnAccepted.noteRendered = false
+        new2EnAccepted.noteRequired = false
+
+        let normalTransferFlow = StatusChangeConfigurationDto()
+        normalTransferFlow.objectTypeId = 1
+        normalTransferFlow.statusFlowList = [new2EnAccepted]
+        
+        
+        self.transferStatusFlow = [normalTransferFlow]
     }
     
     private func initStatusHandlers() {
@@ -654,7 +687,7 @@ class DataStorage {
     private func initWarehouses() {
         self.warehouses = []
     
-        self.warehouses = self.users.filter{ $0.id != 1 }.map { user in
+        self.warehouses = self.users.map { user in
             let warehouse = WarehouseDto()
             warehouse.id = DtoMaker.getUniqueID()
             warehouse.name = user.fullName

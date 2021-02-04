@@ -34,3 +34,11 @@ class TimeRangeDto: Codable {
         case _dateTo = "dateTo"
     }
 }
+
+extension TimeRangeDto {
+    func set(from: Date?, to: Date?) -> TimeRangeDto {
+        self.dateFrom = from
+        self.dateTo = to
+        return self
+    }
+}
