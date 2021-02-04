@@ -436,6 +436,21 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: create task's impact items
+        server.GET["/fsm-mobile/items/typesByClassCode"] = {request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            
+            let itemClassCode = request.queryParams.filter { $0.0 == "itemClassCode" }.first?.1
+            let listDto = ItemTypeImpactListDto()
+            listDto.list = self.storage.itemTypes.filter { $0.itemClass == itemClassCode }.map { itemType in
+                let dto = ItemTypeImpactDto()
+                dto.id = itemType.id
+                dto.name = itemType.typeName
+                return dto
+            }
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
         // MARK: create task tab
         server.GET["/fsm-mobile/workorders/creation/tab"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
@@ -447,7 +462,7 @@ class WebApplication {
             section.tabSectionItems = []
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(1, question: "Is urgent?", type: "INPUT_BOOLEAN"))
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(2, question: "Assign to", type: "CREATE_WORK_ORDER_INPUT_RESOURCE"))
-            section.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Impact", type: "INPUT_TASK_IMPACT").setStringValue("TASK"))
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Impact", type: "INPUT_TASK_IMPACT").setStringValue("INSTALLED_SERVICES"))
             
             let tab = TaskTabDto()
             tab.sequence = 1

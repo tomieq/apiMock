@@ -301,6 +301,24 @@ class DataStorage {
         cable.itemProposalAttributes = []
         
         self.itemTypes = [stb, cable]
+        
+        [30, 100, 150, 300, 500].forEach { speed in
+            let internet = ItemTypeDto()
+            internet.id = DtoMaker.getUniqueID()
+            internet.canBeCreatedAsAnnouncement = true
+            internet.code = "INTERNET\(speed)"
+            internet.countable = false
+            internet.itemClass = "INSTALLED_SERVICES"
+            internet.serializable = false
+            internet.levelId = 1
+            internet.typeName = "Internet \(speed)Mb/s"
+            internet.itemAttributes = []
+            internet.itemProposalAttributes = []
+            self.itemTypes.append(internet)
+        }
+
+        
+        
     }
     
     private func initItemClasses() {
