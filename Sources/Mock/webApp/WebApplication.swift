@@ -186,6 +186,21 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: transfer types
+        server.GET["/fsm-mobile/configuration/transfer/types"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            let listDto = TransferTypeListDto()
+            listDto.transferTypes = []
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
+        // MARK: transfers' ids
+        server.GET["/fsm-mobile/transfers/my/ids"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            return .noContent
+        }
+        
+        // MARK: documents
         server.GET["/fsm-mobile/documents"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
@@ -221,6 +236,15 @@ class WebApplication {
                 return listDto.asValidRsponse(contentType: contentType)
             }
             
+        }
+        
+        // MARK: warehouses
+        server.GET["/fsm-mobile/warehouses/transfer/available-to-transfer"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            
+            let listDto = WarehouseListDto()
+            listDto.warehouseList = self.storage.warehouses
+            return listDto.asValidRsponse(contentType: contentType)
         }
         
         server.GET["/fsm-mobile/audits/filter"] = { request in

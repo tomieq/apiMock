@@ -31,6 +31,7 @@ class DataStorage {
     var taskFlags: [TaskFlagDto] = []
     var priorities: [PriorityDto] = []
     var users: [UserDto] = []
+    var warehouses: [WarehouseDto] = []
     
     init() {
         self.initComponents()
@@ -49,7 +50,7 @@ class DataStorage {
         self.initTaskFlags()
         self.initPriorities()
         self.initUsers()
-        self.initWareHouseItems()
+        self.initWarehouses()
     }
     
     private func initComponents() {
@@ -85,6 +86,12 @@ class DataStorage {
         warehouseModule.type = .module
         warehouseModule.sequence = 5
         self.components.append(warehouseModule)
+        
+        let transfersModule = ConfigurationComponentDto()
+        transfersModule.code = .transfers
+        transfersModule.type = .module
+        transfersModule.sequence = 6
+        self.components.append(transfersModule)
         
         let newTaskModule = ConfigurationComponentDto()
         newTaskModule.code = .newTask
@@ -644,11 +651,20 @@ class DataStorage {
         self.users = [user1, user5, user9, user18, user19, user25]
     }
     
-    private func initWareHouseItems() {
-        self.warehouseItems = []
-        
-        
+    private func initWarehouses() {
+        self.warehouses = []
+    
+        self.warehouses = self.users.filter{ $0.id != 1 }.map { user in
+            let warehouse = WarehouseDto()
+            warehouse.id = DtoMaker.getUniqueID()
+            warehouse.name = user.fullName
+            warehouse.owner = user.fullName
+            warehouse.type = "USER"
+            return warehouse
+        }
     }
+    
+    
     
     func addBusinessDataForToday() {
         
