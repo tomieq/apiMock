@@ -39,8 +39,14 @@ class WebApplication {
             return latestDto.asValidRsponse(contentType: contentType)
         }
         
-        // generating html form and redirect [handled by browser]
+        // MARK: login form
         server.GET["/auth/realms/:tenant/protocol/openid-connect/auth"] = { request in
+            let redirectUrl = request.queryParams.filter{ $0.0 == "redirect_uri" }.map{ $0.1 }.first ?? ""
+            return HttpResponse.movedTemporarily("\(redirectUrl)?code=\(UUID().uuidString)")
+        }
+
+        // MARK: logout
+        server.GET["/auth/realms/:tenant/protocol/openid-connect/logout"] = { request in
             let redirectUrl = request.queryParams.filter{ $0.0 == "redirect_uri" }.map{ $0.1 }.first ?? ""
             return HttpResponse.movedTemporarily("\(redirectUrl)?code=\(UUID().uuidString)")
         }
