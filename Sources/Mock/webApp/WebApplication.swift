@@ -45,10 +45,9 @@ class WebApplication {
             return HttpResponse.movedTemporarily("\(redirectUrl)?code=\(UUID().uuidString)")
         }
 
-        // MARK: logout
-        server.GET["/auth/realms/:tenant/protocol/openid-connect/logout"] = { request in
-            let redirectUrl = request.queryParams.filter{ $0.0 == "redirect_uri" }.map{ $0.1 }.first ?? ""
-            return HttpResponse.movedTemporarily("\(redirectUrl)?code=\(UUID().uuidString)")
+        // MARK:
+        server.POST["/auth/realms/:tenant/protocol/openid-connect/logout"] = { request in
+            return .noContent
         }
         
         server.POST["/auth/realms/:tenant/protocol/openid-connect/token"] = { request in
