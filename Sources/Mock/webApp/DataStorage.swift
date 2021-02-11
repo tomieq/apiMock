@@ -19,6 +19,7 @@ class DataStorage {
     var taskItems: [TaskItemDto] = []
     var dataChanges: [DataChangeDto] = []
     var transfers: [TransferDto] = []
+    var gpsPosition: GpsPositionDto?
     
     var orderTypes: [WorkOrderTypeDto] = []
     var taskTypes: [TaskTypeDto] = []

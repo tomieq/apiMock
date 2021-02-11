@@ -942,6 +942,9 @@ class WebApplication {
         
         // MARK: Report GPS position
         server.POST["/fsm-mobile/gps/position"] = { request in
+            if let inputDto = try? JSONDecoder().decode(GpsPositionsDto.self, from: Data(request.bodyString!.utf8)) {
+                self.storage.gpsPosition = inputDto.positions?.first
+            }
             return .noContent
         }
         
