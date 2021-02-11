@@ -238,6 +238,10 @@ class WebApplication {
                 listDto.items = self.storage.warehouseItems
                 self.storage.dataChanges = self.storage.dataChanges.filter { $0.objectType != .item }
                 return listDto.asValidRsponse(contentType: contentType)
+            case "userItems":
+                let listDto = ItemListDto()
+                listDto.items = self.storage.warehouseItems
+                return listDto.asValidRsponse(contentType: contentType)
             default:
                 let ids = action.split(",")
                 let listDto = ItemListDto()
@@ -392,6 +396,11 @@ class WebApplication {
         
         // MARK: change user's status
         server.PUT["/fsm-mobile/users/workStatus/technicianChangeStatus"] = { request in
+            return .noContent
+        }
+        
+        // MARK: change employee's status
+        server.PUT["/fsm-mobile/users/workStatus/supervisorChangeStatus"] = { request in
             return .noContent
         }
         
@@ -937,6 +946,7 @@ class WebApplication {
             let listDto = SupervisedUserDtoList()
             listDto.users = self.storage.users.map { SupervisedUserDto.make(userDto: $0) }
             listDto.users?.filter{ $0.id == 1 }.first?.employeePosition = EmployeePositionDto.make(self.storage.gpsPosition)
+            listDto.users?.filter{ $0.id == 1 }.first?.tasks = self.storage.tasks.filter{ $0.scheduledRealizationTime?.dateFrom ?? Date() > Date.startOfDay() && $0.scheduledRealizationTime?.dateFrom ?? Date() < Date.endOfDay() }.map { TaskSimpleDto.make($0) }
             return listDto.asValidRsponse(contentType: contentType)
         }
         

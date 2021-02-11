@@ -121,4 +121,20 @@ class TaskSimpleDto: Codable {
         case realizationTime
         case _slaDate = "slaDate"
     }
+    
+    static func make(_ taskDto: TaskDto) -> TaskSimpleDto {
+        let dto = TaskSimpleDto()
+        dto.businessKey = taskDto.bussinesKey
+        dto.externalId = taskDto.id
+        dto.priorityId = taskDto.priorityId
+        dto.realizationTime = taskDto.scheduledRealizationTime
+        dto.slaDate = taskDto.slaDate
+        dto.statusId = taskDto.statusId
+        dto.taskTypeId = taskDto.typeId
+        dto.tehnologyName = "GPON"
+        dto.timeZone = taskDto.timeZone
+        dto.workOrderTypeId = taskDto.workOrderTypeId
+        return dto
+    }
+    
 }
