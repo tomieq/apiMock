@@ -931,6 +931,15 @@ class WebApplication {
             return .noContent
         }
         
+        // MARK: supervised users
+        server.GET["/fsm-mobile/users/subordinate"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
+            let listDto = SupervisedUserDtoList()
+            listDto.users = self.storage.users.map { SupervisedUserDto.make(userDto: $0) }
+            listDto.users?.filter{ $0.id == 1 }.first?.employeePosition = EmployeePositionDto.make(self.storage.gpsPosition)
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
         // MARK: Report GPS position
         server.POST["/fsm-mobile/gps/position"] = { request in
             return .noContent

@@ -97,6 +97,12 @@ class DataStorage {
         transfersModule.sequence = 6
         self.components.append(transfersModule)
         
+        let supervisorModule = ConfigurationComponentDto()
+        supervisorModule.code = .supervisor
+        supervisorModule.type = .module
+        supervisorModule.sequence = 7
+        self.components.append(supervisorModule)
+        
         let newTaskModule = ConfigurationComponentDto()
         newTaskModule.code = .newTask
         newTaskModule.type = .module
@@ -608,7 +614,17 @@ class DataStorage {
     }
     
     private func initUsers() {
-
+        
+        let userDidNotStart = UserWorkStatusDto()
+        userDidNotStart.workStatus = "NOT_STARTED"
+        let userWorking = UserWorkStatusDto()
+        userWorking.workStatus = "STARTED"
+        let userAbsent = UserWorkStatusDto()
+        userAbsent.workStatus = "ABSENCE"
+        let userLate = UserWorkStatusDto()
+        userLate.workStatus = "LATE"
+        
+        
         let user1 = UserDto()
         user1.id = 1
         user1.firstName = "Hans"
@@ -620,11 +636,12 @@ class DataStorage {
         user1.roleName = "Tecnician"
         user1.timeZone = "Europe/Warsaw"
         user1.otpEnabled = false
+        user1.userWorkStatus = userDidNotStart
         
         let user5 = UserDto()
         user5.id = 5
         user5.firstName = "Antonne"
-        user5.fullName = "Antonne Killesto"
+        user5.fullName = "Antonne François Killesto Mustafa"
         user5.hasAvatar = true
         user5.login = "antonne"
         user5.resourceId = 5
@@ -632,11 +649,12 @@ class DataStorage {
         user5.roleName = "Technician"
         user5.timeZone = "Europe/Warsaw"
         user5.otpEnabled = false
+        user5.userWorkStatus = userDidNotStart
         
         let user9 = UserDto()
         user9.id = 9
         user9.firstName = "Stefano"
-        user9.fullName = "Stefano Barracuda"
+        user9.fullName = "Stefano Barracudovsky"
         user9.hasAvatar = true
         user9.login = "stefano"
         user9.resourceId = 9
@@ -644,6 +662,7 @@ class DataStorage {
         user9.roleName = "Technician"
         user9.timeZone = "Europe/Warsaw"
         user9.otpEnabled = false
+        user9.userWorkStatus = userWorking
         
         let user18 = UserDto()
         user18.id = 18
@@ -656,6 +675,7 @@ class DataStorage {
         user18.roleName = "Technician"
         user18.timeZone = "Europe/Warsaw"
         user18.otpEnabled = false
+        user18.userWorkStatus = userDidNotStart
         
         let user19 = UserDto()
         user19.id = 19
@@ -668,20 +688,22 @@ class DataStorage {
         user19.roleName = "Technician"
         user19.timeZone = "Europe/Warsaw"
         user19.otpEnabled = false
+        user19.userWorkStatus = userLate
         
-        let user25 = UserDto()
-        user25.id = 25
-        user25.firstName = "Mike"
-        user25.fullName = "Mike Sweeter"
-        user25.hasAvatar = true
-        user25.login = "mike"
-        user25.resourceId = 25
-        user25.roleCode = "TECHNICIAN"
-        user25.roleName = "Technician"
-        user25.timeZone = "Europe/Warsaw"
-        user25.otpEnabled = false
+        let user26 = UserDto()
+        user26.id = 26
+        user26.firstName = "Mike"
+        user26.fullName = "Mike Sweeter"
+        user26.hasAvatar = true
+        user26.login = "mike"
+        user26.resourceId = 26
+        user26.roleCode = "TECHNICIAN"
+        user26.roleName = "Technician"
+        user26.timeZone = "Europe/Warsaw"
+        user26.otpEnabled = false
+        user26.userWorkStatus = userAbsent
         
-        self.users = [user1, user5, user9, user18, user19, user25]
+        self.users = [user1, user5, user9, user18, user19, user26]
     }
     
     private func initWarehouses() {
