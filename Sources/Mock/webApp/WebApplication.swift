@@ -981,6 +981,7 @@ class WebApplication {
         
         // MARK: Download attachment
         server.GET["/fsm-mobile/attachments/:fileID"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
             
             //let filename = "attachment\(request.params.first?.value ?? "").jpg"
             let filename = "attachment1.jpg"
@@ -988,8 +989,8 @@ class WebApplication {
                let filePath = resourcesPath + filename
                Logger.info("Open file", filePath)
                let file = try filePath.openForReading()
-               let mimeType = filePath.mimeType()
-               var responseHeader: [String: String] = ["Content-Type": mimeType]
+               //let mimeType = filePath.mimeType()
+               var responseHeader: [String: String] = ["Content-Type": contentType]
 
                let attr = try FileManager.default.attributesOfItem(atPath: filePath)
                if let fileSize = attr[FileAttributeKey.size] as? UInt64 {
@@ -1010,13 +1011,14 @@ class WebApplication {
         
         // MARK: Download avatar
         server.GET["/fsm-mobile/users/avatar/:id"] = { request in
+            let contentType = request.headers["accept"] ?? "application/json"
             let filename = "avatar\(request.params.first?.value ?? "").jpg"
             do {
                 let filePath = resourcesPath + filename
                 Logger.info("Open file", filePath)
                 let file = try filePath.openForReading()
-                let mimeType = filePath.mimeType()
-                var responseHeader: [String: String] = ["Content-Type": mimeType]
+                //let mimeType = filePath.mimeType()
+                var responseHeader: [String: String] = ["Content-Type": contentType]
 
                 let attr = try FileManager.default.attributesOfItem(atPath: filePath)
                 if let fileSize = attr[FileAttributeKey.size] as? UInt64 {
