@@ -24,22 +24,33 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/tenant/default"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let tenantDto = TenantDto()
             tenantDto.key = "Telco"
             return tenantDto.asValidRsponse(contentType: contentType)
         }
         
         server.GET["/fsm-mobile/apps/latest"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
-            let apiVersionDto = ApiVersionDto()
-            apiVersionDto.status = .CURRENT
-            apiVersionDto.version = contentType.replacingOccurrences(of: "application/vnd.comarch.fsm-", with: "").replacingOccurrences(of: "+json", with: "")
+            var apiVersions = (0...40).map{ "2.\($0)" }
+            if contentType.contains("application/vnd.comarch.fsm-") {
+                let usedApiVersion = contentType.replacingOccurrences(of: "application/vnd.comarch.fsm-", with: "").replacingOccurrences(of: "+json", with: "")
+                if !apiVersions.contains(usedApiVersion) {
+                    apiVersions.append(usedApiVersion)
+                }
+            }
             
             let latestDto = LatestDto()
             latestDto.version = "master-snapshot"
-            latestDto.supportedApiVersions = [apiVersionDto]
+            latestDto.supportedApiVersions = []
+            
+            apiVersions.forEach { version in
+                let apiVersionDto = ApiVersionDto()
+                apiVersionDto.status = .CURRENT
+                apiVersionDto.version = version
+                latestDto.supportedApiVersions?.append(apiVersionDto)
+            }
             return latestDto.asValidRsponse(contentType: contentType)
         }
         
@@ -56,7 +67,7 @@ class WebApplication {
         
         server.POST["/auth/realms/:tenant/protocol/openid-connect/token"] = { request in
             
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = "application/json"
             let dto = OAuthAccessTokenDto()
             dto.accessToken = UUID().uuidString
             dto.expiresIn = 6000
@@ -66,8 +77,7 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/users/me"] = { request in
-            
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             guard let userDto = (self.storage.users.filter{ $0.id == 1 }.first) else {
                 return .internalServerError
@@ -76,7 +86,7 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/configuration/locale/translations/:lang"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let translationsDto = TranslationsDto()
             translationsDto.locale = request.params.first?.value ?? ""
@@ -90,7 +100,7 @@ class WebApplication {
         
         // MARK: features
         server.GET["/fsm-mobile/configuration/features"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let featureListDto = FeatureListDto()
             featureListDto.list = self.storage.features
@@ -98,7 +108,7 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/configuration/workorder/types"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = WorkOrderTypeListDto()
             listDto.list = self.storage.orderTypes
@@ -107,7 +117,7 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/attachments/types/forCreation"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = AttachmentTypeForCreationListDto()
             listDto.attachmentTypesForCreation = []
@@ -115,7 +125,7 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/configuration/properties/complex"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = ComplexPropertyListDto()
             listDto.list = []
@@ -124,7 +134,7 @@ class WebApplication {
         
         // MARK: system parameters
         server.GET["/fsm-mobile/configuration/systemparameters"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = SystemParameterListDto()
             listDto.list = self.storage.systemParameters
@@ -133,7 +143,7 @@ class WebApplication {
         
         // MARK: dictionaries
         server.GET["/fsm-mobile/dictionaries"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = DictionaryListDto()
             listDto.list = self.storage.dictionaries
@@ -142,7 +152,7 @@ class WebApplication {
         
         // MARK: note templates
         server.GET["/fsm-mobile/note/templates"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = NoteTemplateListDto()
             listDto.noteTemplates = []
@@ -151,7 +161,7 @@ class WebApplication {
         
         // MARK: status handlers
         server.GET["/fsm-mobile/configuration/statushandlers"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = StatusHandlerListDto()
             listDto.list = self.storage.statuShandlers
@@ -160,7 +170,7 @@ class WebApplication {
         
         // MARK: priorities
         server.GET["/fsm-mobile/configuration/priorities"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = PriorityListDto()
             listDto.list = self.storage.priorities
@@ -169,7 +179,7 @@ class WebApplication {
         
         // MARK: item types
         server.GET["/fsm-mobile/configuration/item/types"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = ItemTypeListDto()
             listDto.list = self.storage.itemTypes
@@ -178,7 +188,7 @@ class WebApplication {
         
         // MARK: item type classes
         server.GET["/fsm-mobile/configuration/item/types/class"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             
             let listDto = ItemTypeClassListDto()
@@ -188,7 +198,7 @@ class WebApplication {
         
         // MARK: item type level
         server.GET["/fsm-mobile/configuration/item/types/level"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = ItemTypeLevelListDto()
             listDto.itemTypesLevels = self.storage.itemLevels
@@ -197,7 +207,7 @@ class WebApplication {
         
         // MARK: transfer types
         server.GET["/fsm-mobile/configuration/transfer/types"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let listDto = TransferTypeListDto()
             
             let type = TransferTypeDto()
@@ -213,7 +223,7 @@ class WebApplication {
         
         // MARK: transfer status flow
         server.GET["/fsm-mobile/configuration/transfer/status/flows/:ids"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let listDto = StatusChangeConfigurationListDto()
             listDto.list = self.storage.transferStatusFlow
             return listDto.asValidRsponse(contentType: contentType)
@@ -221,7 +231,7 @@ class WebApplication {
         
         // MARK: documents
         server.GET["/fsm-mobile/documents"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = DocumentListDto()
             listDto.list = []
@@ -230,7 +240,7 @@ class WebApplication {
         
         // MARK: my warehouse's items and by id
         server.GET["/fsm-mobile/items/*"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             self.storage.addBusinessDataForToday()
             let segments = request.path.split("/")
@@ -263,7 +273,7 @@ class WebApplication {
         
         // MARK: warehouses
         server.GET["/fsm-mobile/warehouses/transfer/available-to-transfer"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = WarehouseListDto()
             listDto.warehouseList = self.storage.warehouses.filter{ $0.id != 1 }
@@ -272,13 +282,13 @@ class WebApplication {
         
         // MARK: transfers' ids
         server.GET["/fsm-mobile/transfers/my/ids"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let listDto = TransfersIdListDto()
             listDto.ids = self.storage.transfers.compactMap { $0.id }
             return listDto.asValidRsponse(contentType: contentType)
         }
         server.GET["/fsm-mobile/transfers/:ids"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let listDto = TransferListDto()
             listDto.transferDtos = []
             
@@ -294,7 +304,7 @@ class WebApplication {
         
         // MARK: create transfer
         server.POST["/fsm-mobile/transfers/create"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             if let inputDto = try? JSONDecoder().decode(TransferItemListDto.self, from: Data(request.bodyString!.utf8)) {
                 
 
@@ -343,7 +353,7 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/audits/filter"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let auditFiltersDto = AuditFiltersDto()
             auditFiltersDto.idsAndPredefinedAnswers = [:]
@@ -353,7 +363,7 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/locations/countries"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = CountryListDto()
             listDto.countries = []
@@ -361,7 +371,7 @@ class WebApplication {
         }
         
         server.GET["/fsm-mobile/configuration/realTime"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let dto = RealTimeConfigurationDto()
             dto.hoursInFuture = 2
@@ -371,7 +381,7 @@ class WebApplication {
         
         // MARK: statuses
         server.GET["/fsm-mobile/configuration/statuses"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = StatusListDto()
             listDto.list = self.storage.statuses
@@ -380,7 +390,7 @@ class WebApplication {
         
         // MARK: user's work status
         server.GET["/fsm-mobile/users/workStatus/config"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let dto = UserConfigDto()
             dto.configurationMap = [:]
             
@@ -410,7 +420,7 @@ class WebApplication {
         
         // MARK: configuration components
         server.GET["/fsm-mobile/configuration/components"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = ConfigurationComponentListDto()
             listDto.list = self.storage.components
@@ -420,7 +430,7 @@ class WebApplication {
         
         // MARK: task flags
         server.GET["/fsm-mobile/configuration/task/flags"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = TaskFlagListDto()
             listDto.list = self.storage.taskFlags
@@ -429,7 +439,7 @@ class WebApplication {
         
         // MARK: task types
         server.GET["/fsm-mobile/configuration/task/types"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = TaskTypeListDto()
             listDto.list = self.storage.taskTypes
@@ -438,7 +448,7 @@ class WebApplication {
         
         // MARK: task ids
         server.GET["/fsm-mobile/tasks/my/ids"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             self.storage.addBusinessDataForToday()
 
@@ -451,7 +461,7 @@ class WebApplication {
 
         // MARK: item status flow
         server.GET["/fsm-mobile/configuration/item/status/flows/*"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let inBox2Intalled = StatusTransitionDto()
             inBox2Intalled.firstStatusId = 6
@@ -471,7 +481,7 @@ class WebApplication {
 
         // MARK: task status flow
         server.GET["/fsm-mobile/configuration/task/status/flows/:ids"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = StatusChangeConfigurationListDto()
             listDto.list = self.storage.taskStatusFlow
@@ -479,7 +489,7 @@ class WebApplication {
         }
         // MARK: tasks
         server.GET["/fsm-mobile/tasks/*"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
 
             self.storage.addBusinessDataForToday()
             
@@ -518,7 +528,7 @@ class WebApplication {
         
         // MARK: transfer requests
         server.GET["/fsm-mobile/transfer-requests/*"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
 
             self.storage.addBusinessDataForToday()
             
@@ -537,7 +547,7 @@ class WebApplication {
         
         // MARK: create task
         server.POST["/fsm-mobile/workorders"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let dto = WorkOrderBasicDataDto()
             dto.workOrderId = DtoMaker.getUniqueID()
             dto.workOrderBusinessKey = "WO/\(dto.workOrderId ?? 0)/\(DtoMaker.currentYear())"
@@ -548,7 +558,7 @@ class WebApplication {
 
         // MARK: task's complexes
         server.GET["/fsm-mobile/tasks/:id/complexes"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = ComplexPropertyListDto()
             listDto.list = []
@@ -567,7 +577,7 @@ class WebApplication {
         
         // MARK: create task configuration
         server.GET["/fsm-mobile/configuration/workorder/types/forCreation"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let taskTypeFieldInstallation = TaskTypeForCreationDto()
             taskTypeFieldInstallation.typeId = 1
@@ -605,7 +615,7 @@ class WebApplication {
         
         // MARK: create task's impact items
         server.GET["/fsm-mobile/items/typesByClassCode"] = {request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let itemClassCode = request.queryParams.filter { $0.0 == "itemClassCode" }.first?.1
             let listDto = ItemTypeImpactListDto()
@@ -620,7 +630,7 @@ class WebApplication {
         
         // MARK: create task tab
         server.GET["/fsm-mobile/workorders/creation/tab"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
 
             let section = TaskTabSectionDto()
@@ -642,7 +652,7 @@ class WebApplication {
 
         // MARK: create and get task's announcements
         server["/fsm-mobile/tasks/:id/task-items"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let taskId = Int32(request.params[":id"] ?? "") ?? 0
             
@@ -683,7 +693,7 @@ class WebApplication {
         }
         // MARK: add item to announcement
         server.POST["/fsm-mobile/tasks/*/task-items/:announcementId/item"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
         
             let announcementId = Int32(request.params[":announcementId"] ?? "") ?? 0
             guard let bodyString = request.bodyString, !bodyString.isEmpty else {
@@ -770,7 +780,7 @@ class WebApplication {
         
         // MARK: upload attachment
         server.POST["/fsm-mobile/attachments/upload"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let objectIdString = request.queryParams.filter { $0.0 == "objectId" }.first?.1
             let fileName = request.queryParams.filter { $0.0 == "fileName" }.first?.1
@@ -826,7 +836,7 @@ class WebApplication {
         
         // MARK: calendar's event types
         server.GET["/fsm-mobile/configuration/calendar/eventtypes"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             let listDto = CalendarEventTypeListDto()
             listDto.list = self.storage.calendarEventTypes
@@ -835,7 +845,7 @@ class WebApplication {
         
         // MARK: calendar
         server.GET["/fsm-mobile/calendars/*"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
                         
             self.storage.addBusinessDataForToday()
 
@@ -866,13 +876,13 @@ class WebApplication {
         
         // MARK: calendar version
         server.GET["/fsm-mobile/calendars/my/version"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             return .ok(.data(UUID().uuidString.data(using: .utf8)!, contentType: contentType))
         }
         
         // MARK: create new calendar event
         server.POST["/fsm-mobile/calendars/create"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let dto = CalendarUpdateResultDto()
             dto.id = DtoMaker.getUniqueID()
             dto.calendarVersion = UUID().uuidString
@@ -881,7 +891,7 @@ class WebApplication {
         
         // MARK: messages
         server.GET["/fsm-mobile/messages/*"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             self.storage.addBusinessDataForToday()
             
@@ -914,7 +924,7 @@ class WebApplication {
         
         // MARK: send message
         server.POST["/fsm-mobile/messages/send"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
                 
             if let messageDto = try? JSONDecoder().decode(MessageDto.self, from: Data(request.bodyString!.utf8)),
                 let recipientID = Int32(request.queryParams.first?.1 ?? ""), let recipient = (self.storage.users.filter{ $0.id == recipientID }.first) {
@@ -964,7 +974,7 @@ class WebApplication {
         
         // MARK: supervised users
         server.GET["/fsm-mobile/users/subordinate"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let listDto = SupervisedUserDtoList()
             listDto.users = self.storage.users.map { SupervisedUserDto.make(userDto: $0) }
             listDto.users?.filter{ $0.id == 1 }.first?.employeePosition = EmployeePositionDto.make(self.storage.gpsPosition)
@@ -982,7 +992,7 @@ class WebApplication {
         
         // MARK: Get data changes
         server.GET["/fsm-mobile/notifications/my/notdownloaded"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             self.storage.addBusinessDataForToday()
             
@@ -1008,7 +1018,7 @@ class WebApplication {
         
         // MARK: Download attachment
         server.GET["/fsm-mobile/attachments/:fileID"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             
             //let filename = "attachment\(request.params.first?.value ?? "").jpg"
             let filename = "attachment1.jpg"
@@ -1038,7 +1048,7 @@ class WebApplication {
         
         // MARK: Download avatar
         server.GET["/fsm-mobile/users/avatar/:id"] = { request in
-            let contentType = request.headers["accept"] ?? "application/json"
+            let contentType = self.prepareContentType(request)
             let filename = "avatar\(request.params.first?.value ?? "").jpg"
             do {
                 let filePath = resourcesPath + filename
@@ -1072,5 +1082,12 @@ class WebApplication {
             Logger.info("Incoming request", "\(request.method) \(request.path)")
             return nil
         }
+    }
+    
+    func prepareContentType(_ request: HttpRequest) -> String {
+        if let accept = request.headers["accept"], accept.contains("application/vnd.comarch.fsm-") {
+            return accept
+        }
+        return "application/json"
     }
 }
