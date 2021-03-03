@@ -18,6 +18,10 @@ class WebApplication {
         server["/"] = { request in
             return .notFound
         }
+
+        server["/fsm-mobile"] = { request in
+            return .ok(.html("API mock"))
+        }
         
         server.GET["/fsm-mobile/tenant/default"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
@@ -45,7 +49,7 @@ class WebApplication {
             return HttpResponse.movedTemporarily("\(redirectUrl)?code=\(UUID().uuidString)")
         }
 
-        // MARK:
+        // MARK: logout
         server.POST["/auth/realms/:tenant/protocol/openid-connect/logout"] = { request in
             return .noContent
         }
@@ -565,20 +569,37 @@ class WebApplication {
         server.GET["/fsm-mobile/configuration/workorder/types/forCreation"] = { request in
             let contentType = request.headers["accept"] ?? "application/json"
             
-            let taskType = TaskTypeForCreationDto()
-            taskType.typeId = 1
+            let taskTypeFieldInstallation = TaskTypeForCreationDto()
+            taskTypeFieldInstallation.typeId = 1
+
+            let taskTypeGPONCheck = TaskTypeForCreationDto()
+            taskTypeGPONCheck.typeId = 2
             
-            let technology = TechnologyForCreationDto()
-            technology.technologyId = 1
-            technology.technologyName = "GPON"
-            technology.taskTypesForCreation = [taskType]
+            let technologyGPON = TechnologyForCreationDto()
+            technologyGPON.technologyId = 1
+            technologyGPON.technologyName = "GPON"
+            technologyGPON.taskTypesForCreation = [taskTypeFieldInstallation, taskTypeGPONCheck]
             
-            let workOrderType = WorkOrderTypeForCreationDto()
-            workOrderType.typeId = 1
-            workOrderType.technologiesForCreation = [technology]
+            let technologyFTTH = TechnologyForCreationDto()
+            technologyFTTH.technologyId = 2
+            technologyFTTH.technologyName = "FTTH"
+            technologyFTTH.taskTypesForCreation = [taskTypeFieldInstallation]
+            
+            let technologyDSL = TechnologyForCreationDto()
+            technologyDSL.technologyId = 3
+            technologyDSL.technologyName = "DSL"
+            technologyDSL.taskTypesForCreation = [taskTypeFieldInstallation]
+            
+            let workOrderInstallation = WorkOrderTypeForCreationDto()
+            workOrderInstallation.typeId = 1
+            workOrderInstallation.technologiesForCreation = [technologyGPON, technologyFTTH]
+            
+            let workOrderMaintenance = WorkOrderTypeForCreationDto()
+            workOrderMaintenance.typeId = 2
+            workOrderMaintenance.technologiesForCreation = [technologyGPON, technologyDSL]
             
             let listDto = WorkOrderTypesForCreationListDto()
-            listDto.workOrderTypesForCreation = [workOrderType]
+            listDto.workOrderTypesForCreation = [workOrderInstallation, workOrderMaintenance]
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -609,6 +630,7 @@ class WebApplication {
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(1, question: "Is urgent?", type: "INPUT_BOOLEAN"))
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(2, question: "Assign to", type: "CREATE_WORK_ORDER_INPUT_RESOURCE"))
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Impact", type: "INPUT_TASK_IMPACT").setStringValue("INSTALLED_SERVICES"))
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Description", type: "INPUT_TEXT"))
             
             let tab = TaskTabDto()
             tab.sequence = 1
@@ -976,6 +998,11 @@ class WebApplication {
         
         // MARK: Log app error
         server.POST["/fsm-mobile/logs/errors"] = { request in
+        
+            guard let bodyString = request.bodyString, !bodyString.isEmpty else {
+                Logger.error("Input data", "Empty request body")
+                return .badRequest(nil)
+            }
             return .noContent
         }
         
