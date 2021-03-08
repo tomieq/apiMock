@@ -6,24 +6,15 @@
 //
 
 import Foundation
+import Swifter
 
 extension Encodable {
 
-    func asValidRsponse(contentType: String) -> HttpResponse {
-        do {
-            let jsonData = try JSONEncoder().encode(self)
-            return HttpResponse.ok(HttpResponseBody.data(jsonData, contentType: contentType))
-        } catch {
-            return HttpResponse.internalServerError
-        }
+    func asValidRsponse() -> HttpResponse {
+        return HttpResponse.ok(.json(self))
     }
 
-    func asInvalidRsponse(contentType: String) -> HttpResponse {
-        do {
-            let jsonData = try JSONEncoder().encode(self)
-            return HttpResponse.badRequest(HttpResponseBody.data(jsonData, contentType: contentType))
-        } catch {
-            return HttpResponse.internalServerError
-        }
+    func asInvalidRsponse() -> HttpResponse {
+        return HttpResponse.badRequest(.json(self))
     }
 }
