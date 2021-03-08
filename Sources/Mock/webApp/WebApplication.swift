@@ -64,7 +64,8 @@ class WebApplication {
         server.POST["/auth/realms/:tenant/protocol/openid-connect/logout"] = { request in
             return .noContent
         }
-        
+
+        // MARK: keycloak token
         server.POST["/auth/realms/:tenant/protocol/openid-connect/token"] = { request in
             
             let contentType = "application/json"
@@ -362,11 +363,23 @@ class WebApplication {
             return auditFiltersDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: countries
         server.GET["/fsm-mobile/locations/countries"] = { request in
             let contentType = self.prepareContentType(request)
             
             let listDto = CountryListDto()
             listDto.countries = []
+            
+            let pl = CountryDto()
+            pl.id = 1
+            pl.code = "PL"
+            pl.name = "Poland"
+            listDto.countries?.append(pl)
+            let de = CountryDto()
+            de.id = 2
+            de.code = "DE"
+            de.name = "Germany"
+            listDto.countries?.append(de)
             return listDto.asValidRsponse(contentType: contentType)
         }
         
@@ -613,8 +626,44 @@ class WebApplication {
             return listDto.asValidRsponse(contentType: contentType)
         }
         
+        // MARK: create task's sites
+        server.GET["/fsm-mobile/sites"] = { request in
+            let contentType = self.prepareContentType(request)
+            
+            let listDto = SiteListDto()
+            listDto.pageCount = 1
+            listDto.resultCount = 2
+            listDto.sites = []
+            
+            let site1 = SiteDto()
+            site1.id = 1
+            site1.name = "BTS antenna"
+            site1.location = LocationDto()
+            site1.location?.latitude = 51.759445
+            site1.location?.longitude = 19.457216
+            site1.location?.id = 1
+            site1.location?.city = "Lodz"
+            site1.location?.street = "Pilsudskiego"
+            site1.location?.buildingNo = "12"
+            listDto.sites?.append(site1)
+            
+            
+            let site2 = SiteDto()
+            site2.id = 2
+            site2.name = "Server room"
+            site2.location = LocationDto()
+            site2.location?.latitude = 51.769445
+            site2.location?.longitude = 19.467216
+            site2.location?.city = "Lodz"
+            site2.location?.id = 2
+            site2.location?.street = "Targowa"
+            site2.location?.buildingNo = "33"
+            listDto.sites?.append(site2)
+            return listDto.asValidRsponse(contentType: contentType)
+        }
+        
         // MARK: create task's impact items
-        server.GET["/fsm-mobile/items/typesByClassCode"] = {request in
+        server.GET["/fsm-mobile/items/typesByClassCode"] = { request in
             let contentType = self.prepareContentType(request)
             
             let itemClassCode = request.queryParams.filter { $0.0 == "itemClassCode" }.first?.1
@@ -641,6 +690,10 @@ class WebApplication {
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(2, question: "Assign to", type: "CREATE_WORK_ORDER_INPUT_RESOURCE"))
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Impact", type: "INPUT_TASK_IMPACT").setStringValue("INSTALLED_SERVICES"))
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Description", type: "INPUT_TEXT"))
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(5, question: "Site", type: "INPUT_SITE"))
+            let inputSite = TaskBuilder.makeFormRow(6, question: "Site location", type: "INPUT_SITE_LOCATION")
+            inputSite.code = "INPUT_SITE_LOCATION"
+            section.tabSectionItems?.append(inputSite)
             
             let tab = TaskTabDto()
             tab.sequence = 1
