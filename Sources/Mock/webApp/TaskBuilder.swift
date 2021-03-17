@@ -169,13 +169,20 @@ class TaskBuilder {
         tabToClosed.tabName = "Results"
         tabToClosed.type = "STATIC_DATA"
         tabToClosed.tabSections = [sectionForClosingTask]
+        var tabs: [AdditionalTabDto] = [AdditionalTabDto(3, 4, tabToClosed)]
         
-        let wrappedTabToClosed = AdditionalTabDto()
-        wrappedTabToClosed.fromStatusId = 3
-        wrappedTabToClosed.toStatusId = 4
-        wrappedTabToClosed.tab = tabToClosed
+        let customerSignatureTab = TaskTabDto()
+        customerSignatureTab.sequence = 2
+        customerSignatureTab.tabName = "Customer's signature"
+        customerSignatureTab.type = "CUSTOMER_SIGNATURE"
+        tabs.append(AdditionalTabDto(3, 4, customerSignatureTab))
         
-        let tabs: [AdditionalTabDto] = [wrappedTabToClosed]
+        let technicianSignatureTab = TaskTabDto()
+        technicianSignatureTab.sequence = 3
+        technicianSignatureTab.tabName = "Technician's signature"
+        technicianSignatureTab.type = "TECHNICIAN_SIGNATURE"
+        tabs.append(AdditionalTabDto(3, 4, technicianSignatureTab))
+        
         return tabs
     }
     

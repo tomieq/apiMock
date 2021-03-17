@@ -209,6 +209,15 @@ class DataStorage {
         maxAttachmentHeight.type = "NUMBER_VALUE"
         maxAttachmentHeight.intValue = 3200
         self.systemParameters.append(maxAttachmentHeight)
+        
+        let customerStatement = SystemParameterDto()
+        customerStatement.name = UUID().uuidString
+        customerStatement.id = DtoMaker.getUniqueID()
+        customerStatement.code = "CUSTOMER_AGREEMENT_INFO"
+        customerStatement.type = "STRING_VALUE"
+        customerStatement.stringValue = "I confirm that the service was performed well and I accept it"
+        self.systemParameters.append(customerStatement)
+        
     }
     
     private func initFeatures() {
@@ -298,7 +307,22 @@ class DataStorage {
         darkBlue.value = "dark blue"
         darkBlue.parentIds = [blue.entryId!]
         
-        self.dictionaries = [red, blue, green, lightBlue, darkBlue]
+        
+        let customerAbsent = DictionaryDto()
+        customerAbsent.code = "CUSTOMER_ABSENT"
+        customerAbsent.dictionaryName = "NO_SIGNATURE_REASON"
+        customerAbsent.id = DtoMaker.getUniqueID()
+        customerAbsent.entryId = customerAbsent.id
+        customerAbsent.value = "Customer absent"
+        
+        let customerNoAbletoSign = DictionaryDto()
+        customerNoAbletoSign.code = "CUSTOMER_NO_ABLE_TO_SIGN"
+        customerNoAbletoSign.dictionaryName = "NO_SIGNATURE_REASON"
+        customerNoAbletoSign.id = DtoMaker.getUniqueID()
+        customerNoAbletoSign.entryId = customerNoAbletoSign.id
+        customerNoAbletoSign.value = "Customer absent"
+        
+        self.dictionaries = [red, blue, green, lightBlue, darkBlue, customerAbsent, customerNoAbletoSign, customerNoAbletoSign]
     }
     
     private func initItemTypes() {
