@@ -289,6 +289,7 @@ class WebApplication {
             listDto.ids = self.storage.transfers.compactMap { $0.id }
             return listDto.asValidRsponse()
         }
+        
         server.GET["/fsm-mobile/transfers/:ids"] = { request, responseHeaders in
             self.prepareContentType(request, responseHeaders)
             let listDto = TransferListDto()
@@ -701,9 +702,13 @@ class WebApplication {
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(1, question: "Is urgent?", type: "INPUT_BOOLEAN"))
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(2, question: "Assign to", type: "CREATE_WORK_ORDER_INPUT_RESOURCE"))
             section.tabSectionItems?.append(TaskBuilder.makeFormRow(3, question: "Impact", type: "INPUT_TASK_IMPACT").setStringValue("INSTALLED_SERVICES"))
-            section.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Description", type: "INPUT_TEXT"))
-            section.tabSectionItems?.append(TaskBuilder.makeFormRow(5, question: "Site", type: "INPUT_SITE"))
-            let inputSite = TaskBuilder.makeFormRow(6, question: "Site location", type: "INPUT_SITE_LOCATION")
+            
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(4, question: "Location Range", type: "INPUT_TASK_LOCATION_RANGE"))
+            
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(5, question: "Reporting user", type: "CREATE_WORK_ORDER_INPUT_REPORTING_USER"))
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(6, question: "Description", type: "INPUT_TEXT"))
+            section.tabSectionItems?.append(TaskBuilder.makeFormRow(7, question: "Site", type: "INPUT_SITE"))
+            let inputSite = TaskBuilder.makeFormRow(8, question: "Site location", type: "INPUT_SITE_LOCATION")
             inputSite.code = "INPUT_SITE_LOCATION"
             section.tabSectionItems?.append(inputSite)
             
