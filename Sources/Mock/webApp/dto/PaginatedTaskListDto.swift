@@ -34,6 +34,7 @@ class BasicTaskDto: Codable {
     var slaDate: Date?
     var technologyId: Int32?
     var isTaskLocked: Bool?
+    var location: LocationDto?
     
    enum CodingKeys: String, CodingKey {
        case id = "taskId"
@@ -69,5 +70,6 @@ extension BasicTaskDto {
         self.slaDate = dto.slaDate
         self.technologyId = dto.technologyId
         self.isTaskLocked = dto.isTaskLocked
+        self.location = dto.location
     }
 }
