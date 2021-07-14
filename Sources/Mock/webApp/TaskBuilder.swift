@@ -172,13 +172,13 @@ class TaskBuilder {
         var tabs: [AdditionalTabDto] = [AdditionalTabDto(3, 4, tabToClosed)]
         
         let customerSignatureTab = TaskTabDto()
-        customerSignatureTab.sequence = 2
+        customerSignatureTab.sequence = 3
         customerSignatureTab.tabName = "Customer's signature"
         customerSignatureTab.type = "CUSTOMER_SIGNATURE"
         tabs.append(AdditionalTabDto(3, 4, customerSignatureTab))
         
         let technicianSignatureTab = TaskTabDto()
-        technicianSignatureTab.sequence = 3
+        technicianSignatureTab.sequence = 2
         technicianSignatureTab.tabName = "Technician's signature"
         technicianSignatureTab.type = "TECHNICIAN_SIGNATURE"
         tabs.append(AdditionalTabDto(3, 4, technicianSignatureTab))

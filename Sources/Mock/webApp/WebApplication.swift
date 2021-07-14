@@ -525,6 +525,12 @@ class WebApplication {
                     listDto.taskReassignDataDtoList = (1...7).map { _ in TaskReassignDataDto.makeGroup() }
                 }
                 return listDto.asValidRsponse()
+            case "allVisibleTasks":
+                let dto = PaginatedTaskListDto()
+                dto.currentPage = 1
+                dto.pageAmount = 1
+                dto.tasks = self.storage.foreignTasks.map { BasicTaskDto(taskDto: $0) }
+                return dto.asValidRsponse()
             default:
                 let ids = action.split(separator: ",")
                 let taskListDto = TaskListDto()
@@ -532,6 +538,11 @@ class WebApplication {
                 
                 ids.compactMap{ Int32($0) }.forEach { id in
                     if let taskDto = (self.storage.tasks.filter{ $0.id == id }.first) {
+                        taskListDto.list?.append(taskDto)
+                    }
+                }
+                ids.compactMap{ Int32($0) }.forEach { id in
+                    if let taskDto = (self.storage.foreignTasks.filter{ $0.id == id }.first) {
                         taskListDto.list?.append(taskDto)
                     }
                 }

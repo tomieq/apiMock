@@ -13,6 +13,7 @@ class DataStorage {
     var systemParameters: [SystemParameterDto] = []
     var features: [FeatureDto] = []
     var tasks: [TaskDto] = []
+    var foreignTasks: [TaskDto] = []
     var calendarEvents: [CalendarEventDto] = []
     var messages: [MessageDto] = []
     var warehouseItems: [ItemDto] = []
@@ -752,6 +753,7 @@ class DataStorage {
         if let deleteBorderDate = Date.startOfDay().dateAdding(dayCount: -5) {
             self.calendarEvents = self.calendarEvents.filter { $0.timeRange?.dateFrom ?? Date() > deleteBorderDate }
             self.tasks = self.tasks.filter { $0.scheduledRealizationTime?.dateFrom ?? Date() > deleteBorderDate }
+            self.foreignTasks = self.foreignTasks.filter { $0.scheduledRealizationTime?.dateFrom ?? Date() > deleteBorderDate }
             self.messages = self.messages.filter { $0.createDate ?? Date() > deleteBorderDate }
             self.transfers = self.transfers.filter { $0.transferRange?.dateFrom ?? Date() > deleteBorderDate }
         }
@@ -830,6 +832,19 @@ class DataStorage {
                     self.warehouseItems.append(itemDto)
                     self.dataChanges.append(DtoMaker.makeDataChangeDto(.item, .insert, itemDto.id))
                 }
+            }
+        }
+        
+        
+        let todayForeignTasks = self.foreignTasks.filter{ $0.scheduledRealizationTime?.dateFrom ?? Date() > Date.startOfDay() && $0.scheduledRealizationTime?.dateFrom ?? Date() < Date.endOfDay() }
+
+        if todayOpenTasks.isEmpty {
+            let date = todayForeignTasks.sorted { $0.scheduledRealizationTime?.dateFrom ?? Date() < $1.scheduledRealizationTime?.dateFrom ?? Date() }.last?.scheduledRealizationTime?.dateTo ?? Date().dateWithTime(hour: 9, minute: 13)
+            for index in 0...12 {
+                let taskID = DtoMaker.getUniqueID()
+                let taskDto = TaskBuilder.makeTaskDto(id: taskID, storage: self)
+                taskDto.schedule(from: date?.dateAdding(minuteCount: index * 15), to: date?.dateAdding(minuteCount: 15 + index * 15))
+                self.foreignTasks.append(taskDto)
             }
         }
     }
