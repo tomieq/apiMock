@@ -601,6 +601,19 @@ class WebApplication {
             return .noContent
         }
         
+        server.GET["/fsm-mobile/reporters"] = { request, responseHeaders in
+            self.prepareContentType(request, responseHeaders)
+
+            let listDto = TaskReportingUserListDto()
+            listDto.taskReportingUsers = self.storage.users.map {
+                let dto = TaskReportingUserDto()
+                dto.fullName = $0.fullName
+                dto.phoneNumber = "500 893 123"
+                return dto
+            }
+            return listDto.asValidRsponse()
+        }
+        
         // MARK: create task configuration
         server.GET["/fsm-mobile/configuration/workorder/types/forCreation"] = { request, responseHeaders in
             self.prepareContentType(request, responseHeaders)
