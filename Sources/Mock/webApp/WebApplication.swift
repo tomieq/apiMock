@@ -34,16 +34,17 @@ class WebApplication {
         server.GET["/fsm-mobile/apps/latest"] = { request, responseHeaders in
             self.prepareContentType(request, responseHeaders)
             
-            var apiVersions = (0...40).map{ "2.\($0)" }
+            var apiVersions = (0...40).map{ "3.\($0)" }
             if let contentType = request.headers["accept"], contentType.contains("application/vnd.comarch.fsm-") {
                 let usedApiVersion = contentType.replacingOccurrences(of: "application/vnd.comarch.fsm-", with: "").replacingOccurrences(of: "+json", with: "")
                 if !apiVersions.contains(usedApiVersion) {
                     apiVersions.append(usedApiVersion)
                 }
             }
-            
+            let appVersion = request.headers["app-version"] ?? "master-snapshot"
+            Logger.debug("New connection", "Connected app \(appVersion)")
             let latestDto = LatestDto()
-            latestDto.version = "master-snapshot"
+            latestDto.version = appVersion
             latestDto.supportedApiVersions = []
             
             apiVersions.forEach { version in
