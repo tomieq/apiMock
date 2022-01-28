@@ -1166,6 +1166,7 @@ class WebApplication {
         }
         
         server.middleware.append { request, responseHeaders in
+            request.disableKeepAlive = true
             Logger.info("Incoming request", "\(request.method) \(request.path)")
             return nil
         }
