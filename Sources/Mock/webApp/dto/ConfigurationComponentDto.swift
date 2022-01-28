@@ -43,6 +43,7 @@ enum ComponentCode: String, Codable {
     case contacts = "MOBILE_CONTACT_LIST_MODULE"
     case qrItemScanner = "MOBILE_QR_ITEM_SCANNER_MODULE"
     case inventoryMock = "MOBILE_INVENTORY_MOCK_MODULE"
+    case ossInventory = "MOBILE_OSS_INVENTORY_MODULE"
     case tasksNearby = "MOBILE_TASKS_NEARBY_COMPONENT"
     // buttons
     case addAnnouncementButton = "MOBILE_ADD_ANNOUNCEMENT_BUTTON"
