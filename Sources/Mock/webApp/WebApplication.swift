@@ -1137,6 +1137,7 @@ class WebApplication {
         // MARK: Download avatar
         server.GET["/fsm-mobile/users/avatar/:id"] = { request, responseHeaders in
             self.prepareContentType(request, responseHeaders)
+            //responseHeaders.addHeader("Content-Type", "application/octet-stream")
             let filename = "avatar\(request.params.first?.value ?? "").jpg"
             do {
                 let filePath = resourcesPath + filename
